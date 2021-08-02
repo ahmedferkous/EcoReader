@@ -1,15 +1,27 @@
 package com.example.ecoreader;
 
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.app.job.JobInfo;
+import android.app.job.JobScheduler;
+import android.content.ComponentName;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
+import android.util.Log;
 import android.util.Xml;
+import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.TextView;
+
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 import org.jsoup.Jsoup;
 import org.xmlpull.v1.XmlPullParser;
@@ -18,160 +30,71 @@ import org.xmlpull.v1.XmlPullParserException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.ref.WeakReference;
+import java.lang.reflect.Type;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.URL;
 import java.util.ArrayList;
 
+import static com.example.ecoreader.GetDataJobService.ECO_LIST;
+import static com.example.ecoreader.GetDataJobService.ECO_UPDATES;
+
+// TODO: 3/08/2021 Service not running?? 
 public class MainActivity extends AppCompatActivity {
+    private static final String TAG = "MainActivity";
+    public static final String FIRST_JOB_RUN = "job_scheduled";
+    public static final int DOWNLOAD_JOB_ID = 20005;
+    private TextView txtFetch;
+    private RecyclerView recView;
+    private NewsAdapter newsAdapter;
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        scheduleService();
 
-        new GetNews(this).execute();
+        txtFetch = findViewById(R.id.txtFetch);
+        recView = findViewById(R.id.recView);
+        newsAdapter = new NewsAdapter(this);
+        recView.setLayoutManager(new LinearLayoutManager(this));
+        recView.setAdapter(newsAdapter);
+
+        loadNews();
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+    private void loadNews() {
+        Gson gson = new Gson();
+        Type typeToken = new TypeToken<ArrayList<NewsObject>>(){}.getType();
+        ArrayList<NewsObject> newsList = gson.fromJson(getSharedPreferences(ECO_UPDATES, MODE_PRIVATE).getString(ECO_LIST, gson.toJson(new ArrayList<NewsObject>())), typeToken);
+        newsAdapter.setNewsArrayList(newsList);
+        txtFetch.setVisibility(View.GONE);
+    }
+
+    private void scheduleService() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+            if (preferences.getBoolean(FIRST_JOB_RUN, true)) {
+                Log.d(TAG, "scheduleService: SCHEDULED!!! XD");
+                ComponentName componentName = new ComponentName(this, GetDataJobService.class);
+                JobInfo.Builder builder = new JobInfo.Builder(DOWNLOAD_JOB_ID, componentName)
+                        .setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY)
+                        .setPersisted(true);
+                builder.setPeriodic(3600000); // one hour - 3600000
+                JobScheduler scheduler = (JobScheduler) getSystemService(JOB_SCHEDULER_SERVICE);
+                scheduler.schedule(builder.build());
+                preferences.edit().putBoolean(FIRST_JOB_RUN, false).apply();
+            } else {
+
+            }
+        }
+
     }
 
 
 
-    private static class GetNews extends AsyncTask<Void, Void, Void> {
-        private final WeakReference<MainActivity> activityReference;
-        private ArrayList<NewsObject> arrayList = new ArrayList<>();
 
-        public GetNews(MainActivity activity) {
-            activityReference = new WeakReference<>(activity);
-        }
-
-        @Override
-        protected Void doInBackground(Void... voids) {
-            InputStream inputStream = getInputStream();
-            if (null != inputStream) {
-                try {
-                    initXMLPullParser(inputStream);
-                } catch (XmlPullParserException | IOException e) {
-                    e.printStackTrace();
-                }
-            }
-            return null;
-        }
-
-        private InputStream getInputStream() {
-            try {
-                URL url = new URL("https://tradingeconomics.com/australia/rss");
-                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-                connection.setRequestMethod("GET");
-                connection.setDoInput(true);
-                return connection.getInputStream();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            return null;
-        }
-
-        private String getContent(XmlPullParser parser, String tagName) throws IOException, XmlPullParserException {
-            String content = "";
-            parser.require(XmlPullParser.START_TAG, null, tagName);
-            if (parser.next() == XmlPullParser.TEXT) {
-                content = Jsoup.parse(parser.getText()).text();
-                parser.next();
-            }
-            return content;
-        }
-
-        private void skipTag(XmlPullParser parser) throws XmlPullParserException, IOException {
-            if (parser.getEventType() != XmlPullParser.START_TAG) {
-                throw new IllegalStateException();
-            }
-
-            int number = 1;
-
-            while (number != 0) {
-                switch (parser.next()) {
-                    case XmlPullParser.START_TAG:
-                        number++;
-                        break;
-                    case XmlPullParser.END_TAG:
-                        number--;
-                        break;
-                    default:
-                        break;
-                }
-            }
-        }
-
-        private void initXMLPullParser(InputStream inputStream) throws XmlPullParserException, IOException {
-            XmlPullParser parser = Xml.newPullParser();
-            parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false);
-            parser.setInput(inputStream, null);
-            parser.next();
-
-            parser.require(XmlPullParser.START_TAG, null, "rss");
-            while (parser.next() != XmlPullParser.END_TAG) {
-                if (parser.getEventType() != XmlPullParser.START_TAG) {
-                    continue;
-                }
-                parser.require(XmlPullParser.START_TAG, null, "channel");
-                while (parser.next() != XmlPullParser.END_TAG) {
-                    if (parser.getEventType() != XmlPullParser.START_TAG) {
-                        continue;
-                    }
-
-                    if (parser.getName().equals("item")) {
-                        parser.require(XmlPullParser.START_TAG, null, "item");
-
-                        String title = "";
-                        String link = "";
-                        String desc = "";
-                        String author = "";
-                        String pubDate = "";
-
-                        while (parser.next() != XmlPullParser.END_TAG) {
-                            if (parser.getEventType() != XmlPullParser.START_TAG) {
-                                continue;
-                            }
-
-                            String tagName = parser.getName();
-                            switch (tagName) {
-                                case "title":
-                                    title = getContent(parser, "title");
-                                    break;
-                                case "link":
-                                    link = getContent(parser, "link");
-                                    break;
-                                case "description":
-                                    desc = getContent(parser, "description");
-                                    break;
-                                case "author":
-                                    author = getContent(parser, "author");
-                                    break;
-                                case "pubDate":
-                                    pubDate = getContent(parser, "pubDate").replace("GMT", "");
-                                    break;
-                                default:
-                                    skipTag(parser);
-                                    break;
-                            }
-                        }
-
-                        NewsObject item = new NewsObject(title, link, desc, author, pubDate);
-                        arrayList.add(item);
-                    } else {
-                        skipTag(parser);
-                    }
-                }
-            }
-        }
-
-        @Override
-        protected void onPostExecute(Void aVoid) {
-            super.onPostExecute(aVoid);
-            RecyclerView recView = activityReference.get().findViewById(R.id.recView);
-            NewsAdapter newsAdapter = new NewsAdapter(activityReference.get());
-            recView.setLayoutManager(new LinearLayoutManager(activityReference.get()));
-            recView.setAdapter(newsAdapter);
-            newsAdapter.setNewsArrayList(arrayList);
-        }
-    }
 }
