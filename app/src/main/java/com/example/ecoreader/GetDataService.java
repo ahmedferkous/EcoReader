@@ -31,6 +31,7 @@ import java.util.ArrayList;
 
 import static com.example.ecoreader.App.CHANNEL_ID_1;
 
+// TODO: 4/08/2021 Total new news displayed in foreground notification? (i.e Latest News: etc (2 New))
 public class GetDataService extends Service {
     private static final String TAG = "GetDataService";
     public static final String ECO_UPDATES = "news_updates";
@@ -109,12 +110,13 @@ public class GetDataService extends Service {
                 .setContentIntent(pendingIntent)
                 .setPriority(NotificationCompat.PRIORITY_LOW)
                 .setStyle(new NotificationCompat.BigTextStyle().setBigContentTitle("Latest News: " + latestNews.getTitle())
-                .bigText(latestNews.getDesc()));
+                        .bigText(latestNews.getDesc()));
         startForeground(1, builder.build());
     }
 
     public class GetNews extends AsyncTask<Void, Void, Void> {
         private ArrayList<NewsObject> arrayList = new ArrayList<>();
+
         @Override
         protected Void doInBackground(Void... voids) {
             InputStream inputStream = getInputStream();
