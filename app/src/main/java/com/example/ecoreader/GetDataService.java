@@ -1,23 +1,21 @@
 package com.example.ecoreader;
 
 import android.app.Notification;
-import android.app.NotificationManager;
 import android.app.PendingIntent;
-import android.app.job.JobParameters;
-import android.app.job.JobService;
+import android.app.Service;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.location.Location;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
+import android.os.Handler;
+import android.os.IBinder;
 import android.util.Log;
 import android.util.Xml;
 
-import androidx.annotation.RequiresApi;
+import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.gson.Gson;
 
@@ -27,53 +25,66 @@ import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.ref.WeakReference;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 
-@RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-public class GetDataJobService extends JobService {
-    private static final String TAG = "GetDataJobService";
+import static com.example.ecoreader.App.CHANNEL_ID_1;
+
+public class GetDataService extends Service {
+    private static final String TAG = "GetDataService";
     public static final String ECO_UPDATES = "news_updates";
     public static final String ECO_LIST = "eco_list";
     private GetNews downloadAsyncTask;
+    private final Handler handler = new Handler();
+    private final Runnable periodicUpdate = new Runnable() {
+        @Override
+        public void run() {
+            handler.postDelayed(periodicUpdate, 7200000); // 2 hours later
+            downloadAsyncTask = new GetNews();
+            downloadAsyncTask.execute();
+        }
+    };
 
     @Override
     public void onCreate() {
         super.onCreate();
-        Log.d(TAG, "onCreate: Created");
+        startOwnForeground();
+    }
+
+    private void startOwnForeground() {
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID_1)
+                .setOngoing(true)
+                .setContentTitle("App is running in background")
+                .setPriority(NotificationManagerCompat.IMPORTANCE_MIN);
+        startForeground(1, builder.build());
+
+    }
+
+    @Nullable
+    @Override
+    public IBinder onBind(Intent intent) {
+        return null;
     }
 
     @Override
-    public boolean onStartJob(JobParameters params) {
-        downloadAsyncTask = new GetNews();
-        downloadAsyncTask.execute();
-        Log.d(TAG, "onStartJob: Successfully started!");
-        return true;
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        handler.postDelayed(periodicUpdate, 10000);
+        return START_STICKY;
     }
 
     @Override
-    public boolean onStopJob(JobParameters params) {
-        if (null != downloadAsyncTask) {
+    public void onDestroy() {
+        super.onDestroy();
+        if (downloadAsyncTask != null) {
             if (!downloadAsyncTask.isCancelled()) {
                 downloadAsyncTask.cancel(true);
             }
         }
-        return true; // reschedule job
-    }
-
-    private void sendNotification(NewsObject latestNews) {
-        Intent intent = new Intent(this, MainActivity.class);
-        PendingIntent pIntent = PendingIntent.getActivity(this, 0, intent, 0);
-
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, App.CHANNEL_ID_1)
-                .setContentText("New Economic News Available")
-                .setContentText("Latest News:\n" + latestNews.getTitle() + "\n" + latestNews.getDesc() + "\n" + latestNews.getPubDate())
-                .setContentIntent(pIntent);
-
-        NotificationManagerCompat manager = NotificationManagerCompat.from(this);
-        manager.notify(1, builder.build());
+        Intent broadcastIntent = new Intent();
+        broadcastIntent.setAction("restartservice");
+        broadcastIntent.setClass(this, RestartReceiver.class);
+        sendBroadcast(broadcastIntent);
     }
 
     private void writeToPreferences(ArrayList<NewsObject> newsList) {
@@ -83,8 +94,23 @@ public class GetDataJobService extends JobService {
             edit.putString(ECO_LIST, new Gson().toJson(newsList));
             edit.apply();
             Log.d(TAG, "writeToPreferences: Written!!");
-            sendNotification(newsList.get(newsList.size()-1));
+            send(newsList.get(0));
+            //sendNotification(newsList.get(newsList.size()-1));
         }
+    }
+
+    private void send(NewsObject latestNews) {
+        Intent webIntent = new Intent(Intent.ACTION_VIEW);
+        webIntent.setData(Uri.parse(latestNews.getLink()));
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, webIntent, 0);
+
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID_1)
+                .setSmallIcon(R.mipmap.ic_launcher)
+                .setContentIntent(pendingIntent)
+                .setPriority(NotificationCompat.PRIORITY_LOW)
+                .setStyle(new NotificationCompat.BigTextStyle().setBigContentTitle("Latest News: " + latestNews.getTitle())
+                .bigText(latestNews.getDesc()));
+        startForeground(1, builder.build());
     }
 
     public class GetNews extends AsyncTask<Void, Void, Void> {
