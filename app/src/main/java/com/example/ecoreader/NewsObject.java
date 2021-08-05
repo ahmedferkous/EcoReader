@@ -1,5 +1,8 @@
 package com.example.ecoreader;
 
+import androidx.room.Entity;
+
+@Entity(tableName = "news_table")
 public class NewsObject {
     private final String title;
     private final String link;

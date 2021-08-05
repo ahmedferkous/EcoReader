@@ -24,9 +24,8 @@ import static com.example.ecoreader.GetDataService.ECO_LIST;
 import static com.example.ecoreader.GetDataService.ECO_UPDATES;
 
 public class MainActivity extends AppCompatActivity {
-    //private static final String TAG = "MainActivity";
-    private TextView txtFetch;
     private NewsAdapter newsAdapter;
+    private NewsDatabase db;
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
@@ -40,7 +39,7 @@ public class MainActivity extends AppCompatActivity {
             startService(mServiceIntent);
         }
 
-        txtFetch = findViewById(R.id.txtFetch);
+        db = NewsDatabase.getInstance(this);
         RecyclerView recView = findViewById(R.id.recView);
         newsAdapter = new NewsAdapter(this);
         recView.setLayoutManager(new LinearLayoutManager(this));
@@ -72,12 +71,8 @@ public class MainActivity extends AppCompatActivity {
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     private void loadNews() {
-        Gson gson = new Gson();
-        Type typeToken = new TypeToken<ArrayList<NewsObject>>() {
-        }.getType();
-        ArrayList<NewsObject> newsList = gson.fromJson(getSharedPreferences(ECO_UPDATES, MODE_PRIVATE).getString(ECO_LIST, gson.toJson(new ArrayList<NewsObject>())), typeToken);
+        ArrayList<NewsObject> newsList = (ArrayList<NewsObject>) db.newsDao().getAllNews();
         newsAdapter.setNewsArrayList(newsList);
-        txtFetch.setVisibility(View.GONE);
     }
 
 }

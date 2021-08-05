@@ -89,7 +89,12 @@ public class GetDataService extends Service {
     }
 
     private void writeToPreferences(ArrayList<NewsObject> newsList) {
+        NewsDatabase db = NewsDatabase.getInstance(this);
         if (newsList.size() > 0) {
+            for (NewsObject object : newsList) {
+                
+            }
+
             SharedPreferences sharedPreferences = getSharedPreferences(ECO_UPDATES, MODE_PRIVATE);
             SharedPreferences.Editor edit = sharedPreferences.edit();
             edit.putString(ECO_LIST, new Gson().toJson(newsList));
