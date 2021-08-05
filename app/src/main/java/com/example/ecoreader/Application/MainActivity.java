@@ -1,4 +1,4 @@
-package com.example.ecoreader;
+package com.example.ecoreader.Application;
 
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
@@ -14,14 +14,16 @@ import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
+import com.example.ecoreader.DataRetrieval.NewsObject;
+import com.example.ecoreader.R;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 
-import static com.example.ecoreader.GetDataService.ECO_LIST;
-import static com.example.ecoreader.GetDataService.ECO_UPDATES;
+import static com.example.ecoreader.Application.GetDataService.ECO_LIST;
+import static com.example.ecoreader.Application.GetDataService.ECO_UPDATES;
 
 public class MainActivity extends AppCompatActivity {
     //private static final String TAG = "MainActivity";

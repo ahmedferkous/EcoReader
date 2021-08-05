@@ -1,4 +1,4 @@
-package com.example.ecoreader;
+package com.example.ecoreader.Application;
 
 import android.app.Application;
 import android.app.NotificationChannel;

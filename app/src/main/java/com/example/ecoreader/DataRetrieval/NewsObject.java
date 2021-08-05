@@ -1,4 +1,4 @@
-package com.example.ecoreader;
+package com.example.ecoreader.DataRetrieval;
 
 public class NewsObject {
     private final String title;
