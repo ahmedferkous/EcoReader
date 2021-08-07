@@ -1,4 +1,4 @@
-package com.example.ecoreader.Application;
+package com.example.ecoreader.Adapters;
 
 import android.app.AlertDialog;
 import android.content.Context;
@@ -12,7 +12,6 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.ecoreader.DataRetrieval.NewsObject;
 import com.example.ecoreader.R;
 import com.google.android.material.card.MaterialCardView;
 

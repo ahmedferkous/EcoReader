@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:title="Exchange Rate"
+        android:id="@+id/exchangeRate"
+        android:icon="@drawable/ic_exchange"/>
+
+    <item
+        android:title="RSS Feed"
+        android:id="@+id/rssFeed"
+        android:icon="@drawable/ic_rss"/>
+
+    <item
+        android:title="Import/Export Prices"
+        android:id="@+id/importExportPrices"
+        android:icon="@drawable/ic_import_export"/>
+
+</menu>

@@ -1,4 +1,9 @@
-package com.example.ecoreader.DataRetrieval;
+package com.example.ecoreader.DataRetrieval.Interfaces;
+
+import com.example.ecoreader.DataRetrieval.PlainOldJavaObjects.LatestRatesObject;
+import com.example.ecoreader.DataRetrieval.PlainOldJavaObjects.TimeSeriesObject;
+
+import java.util.HashMap;
 
 import retrofit2.Call;
 import retrofit2.http.GET;
@@ -14,8 +19,9 @@ public interface RateEndpoint {
     Call<TimeSeriesObject> getTimeSeries(@Path("date") String date, @Query("to") String to);
 
     @GET("/latest")
-    Call<LatestRatesObject> getConversion(@Query("amount") int amount, @Query("from") String from, @Query("to") String to);
+    Call<LatestRatesObject> getConversion(@Query("amount") float amount, @Query("from") String from, @Query("to") String to);
 
     @GET("/currencies")
-    Call<String[]> getAvailableCurrencies();
+    Call<HashMap<String, String>> getAvailableCurrencies();
 }
+

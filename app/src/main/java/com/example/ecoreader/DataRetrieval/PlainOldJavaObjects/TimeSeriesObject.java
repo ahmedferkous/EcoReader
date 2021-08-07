@@ -1,13 +1,15 @@
-package com.example.ecoreader.DataRetrieval;
+package com.example.ecoreader.DataRetrieval.PlainOldJavaObjects;
+
+import java.util.HashMap;
 
 public class TimeSeriesObject {
-    private int amount;
+    private float amount;
     private String base;
     private String start_date;
     private String end_date;
-    private String[][] rates;
+    private HashMap<String, HashMap<String, Double>> rates;
 
-    public TimeSeriesObject(int amount, String base, String start_date, String end_date, String[][] rates) {
+    public TimeSeriesObject(float amount, String base, String start_date, String end_date, HashMap<String, HashMap<String, Double>> rates) {
         this.amount = amount;
         this.base = base;
         this.start_date = start_date;
@@ -15,8 +17,20 @@ public class TimeSeriesObject {
         this.rates = rates;
     }
 
-    public int getAmount() {
+    public HashMap<String, HashMap<String, Double>> getRates() {
+        return rates;
+    }
+
+    public void setRates(HashMap<String, HashMap<String, Double>> rates) {
+        this.rates = rates;
+    }
+
+    public float getAmount() {
         return amount;
+    }
+
+    public void setAmount(float amount) {
+        this.amount = amount;
     }
 
     public void setAmount(int amount) {
@@ -47,11 +61,4 @@ public class TimeSeriesObject {
         this.end_date = end_date;
     }
 
-    public String[][] getRates() {
-        return rates;
-    }
-
-    public void setRates(String[][] rates) {
-        this.rates = rates;
-    }
 }

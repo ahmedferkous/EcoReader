@@ -1,20 +1,26 @@
-package com.example.ecoreader.DataRetrieval;
+package com.example.ecoreader.DataRetrieval.PlainOldJavaObjects;
+
+import java.util.HashMap;
 
 public class LatestRatesObject {
-    private int amount;
+    private float amount;
     private String base;
     private String date;
-    private String[] rates;
+    private HashMap<String, Float> rates;
 
-    public LatestRatesObject(int amount, String base, String date, String[] rates) {
+    public LatestRatesObject(float amount, String base, String date, HashMap<String, Float> rates) {
         this.amount = amount;
         this.base = base;
         this.date = date;
         this.rates = rates;
     }
 
-    public int getAmount() {
+    public float getAmount() {
         return amount;
+    }
+
+    public void setAmount(float amount) {
+        this.amount = amount;
     }
 
     public void setAmount(int amount) {
@@ -37,11 +43,11 @@ public class LatestRatesObject {
         this.date = date;
     }
 
-    public String[] getRates() {
+    public HashMap<String, Float> getRates() {
         return rates;
     }
 
-    public void setRates(String[] rates) {
+    public void setRates(HashMap<String, Float> rates) {
         this.rates = rates;
     }
 }

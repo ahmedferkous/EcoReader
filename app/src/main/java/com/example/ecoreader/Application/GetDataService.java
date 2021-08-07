@@ -5,50 +5,82 @@ import android.app.Service;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.IBinder;
 import android.util.Log;
-import android.util.Xml;
 
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 
-import com.example.ecoreader.DataRetrieval.GetNews;
-import com.example.ecoreader.DataRetrieval.NewsObject;
+import com.example.ecoreader.DataRetrieval.Interfaces.FinishedRequest;
+import com.example.ecoreader.DataRetrieval.GetNewsData;
+import com.example.ecoreader.Adapters.NewsObject;
+import com.example.ecoreader.DataRetrieval.PlainOldJavaObjects.LatestRatesObject;
+import com.example.ecoreader.DataRetrieval.PlainOldJavaObjects.TimeSeriesObject;
 import com.example.ecoreader.R;
-import com.example.ecoreader.Application.RestartReceiver;
 import com.google.gson.Gson;
 
-import org.jsoup.Jsoup;
-import org.xmlpull.v1.XmlPullParser;
-import org.xmlpull.v1.XmlPullParserException;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import static com.example.ecoreader.Application.App.CHANNEL_ID_1;
 
-public class GetDataService extends Service implements GetNews.OnCompletedRequest {
+public class GetDataService extends Service implements FinishedRequest {
     @Override
-    public void onCompetedData(ArrayList<NewsObject> arrayList) {
-        writeToPreferences(arrayList);
+    public void onRetrievedNews(ArrayList<NewsObject> arrayList) { //Only here
+        writeNews(arrayList);
+    }
+
+    @Override
+    public void onReceivedRates(LatestRatesObject latestRatesObject) { //Only here
+        HashMap<String, Float> rates = latestRatesObject.getRates();
+        SharedPreferences.Editor editor = getEditor();
+        editor.putString(RATES, gson.toJson(rates));
+        editor.apply();
+    }
+
+    @Override
+    public void onReceivedTimeSeries(TimeSeriesObject timeSeriesObject) {  // only ran in RateFragment
+       /*
+       HashMap<String, HashMap<String, Double>> timeSeries = timeSeriesObject.getRates();
+       SharedPreferences.Editor editor = getEditor();
+       editor.putString(TIME_SERIES, gson.toJson(timeSeries));
+       editor.apply();
+        */
+
+    }
+
+    @Override
+    public void onReceivedConversion(float convertedAmount) { //both
+        SharedPreferences.Editor editor = getEditor();
+        editor.putFloat(CONVERT_AMOUNT, convertedAmount);
+        editor.apply();
+    }
+
+    @Override
+    public void availableCurrencies(HashMap<String, String> currenciesMap) { //Only here
+        SharedPreferences.Editor editor = getEditor();
+        editor.putString(AVAILABLE_CURRENCIES, gson.toJson(currenciesMap));
+        editor.apply();
     }
 
     private static final String TAG = "GetDataService";
     public static final String ECO_UPDATES = "news_updates";
+    public static final String RATES = "rates";
+    public static final String TIME_SERIES = "time_series";
+    public static final String CONVERT_AMOUNT = "convert_amount";
+    public static final String AVAILABLE_CURRENCIES = "available_currencies";
     public static final String ECO_LIST = "eco_list";
-    private GetNews downloadAsyncTask;
+
+    private GetNewsData downloadAsyncTask;
+    private Gson gson = new Gson();
     private final Handler handler = new Handler();
-    private final Runnable periodicUpdate = new Runnable() {
+    private final Runnable newsPeriodicUpdate = new Runnable() {
         @Override
         public void run() {
-            handler.postDelayed(periodicUpdate, 7200000); // 2 hours later
-            downloadAsyncTask = new GetNews(GetDataService.this);
+            handler.postDelayed(newsPeriodicUpdate, 7200000); // 2 hours later
+            downloadAsyncTask = new GetNewsData(GetDataService.this);
             downloadAsyncTask.execute();
         }
     };
@@ -76,7 +108,7 @@ public class GetDataService extends Service implements GetNews.OnCompletedReques
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        handler.postDelayed(periodicUpdate, 10000);
+        handler.postDelayed(newsPeriodicUpdate, 10000);
         return START_STICKY;
     }
 
@@ -94,11 +126,15 @@ public class GetDataService extends Service implements GetNews.OnCompletedReques
         sendBroadcast(broadcastIntent);
     }
 
-    private void writeToPreferences(ArrayList<NewsObject> newsList) {
+    private SharedPreferences.Editor getEditor() {
+        SharedPreferences sharedPreferences = getSharedPreferences(ECO_UPDATES, MODE_PRIVATE);
+        return sharedPreferences.edit();
+    }
+
+    private void writeNews(ArrayList<NewsObject> newsList) {
         if (newsList.size() > 0) {
-            SharedPreferences sharedPreferences = getSharedPreferences(ECO_UPDATES, MODE_PRIVATE);
-            SharedPreferences.Editor edit = sharedPreferences.edit();
-            edit.putString(ECO_LIST, new Gson().toJson(newsList));
+            SharedPreferences.Editor edit = getEditor();
+            edit.putString(ECO_LIST, gson.toJson(newsList));
             edit.apply();
             Log.d(TAG, "writeToPreferences: Written!!");
             send(newsList.get(0));

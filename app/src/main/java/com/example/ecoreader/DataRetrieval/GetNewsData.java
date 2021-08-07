@@ -3,7 +3,9 @@ package com.example.ecoreader.DataRetrieval;
 import android.os.AsyncTask;
 import android.util.Xml;
 
+import com.example.ecoreader.Adapters.NewsObject;
 import com.example.ecoreader.Application.GetDataService;
+import com.example.ecoreader.DataRetrieval.Interfaces.FinishedRequest;
 
 import org.jsoup.Jsoup;
 import org.xmlpull.v1.XmlPullParser;
@@ -15,14 +17,11 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 
-public class GetNews extends AsyncTask<Void, Void, Void> {
-    public interface OnCompletedRequest {
-        void onCompetedData(ArrayList<NewsObject> arrayList);
-    }
+public class GetNewsData extends AsyncTask<Void, Void, Void> {
     private ArrayList<NewsObject> arrayList;
-    private final OnCompletedRequest onComplete;
+    private final FinishedRequest onComplete;
 
-    public GetNews(GetDataService service) {
+    public GetNewsData(GetDataService service) {
         arrayList = new ArrayList<>();
         onComplete = service;
     }
@@ -149,6 +148,6 @@ public class GetNews extends AsyncTask<Void, Void, Void> {
     @Override
     protected void onPostExecute(Void aVoid) {
         super.onPostExecute(aVoid);
-        onComplete.onCompetedData(arrayList);
+        onComplete.onRetrievedNews(arrayList);
     }
 }

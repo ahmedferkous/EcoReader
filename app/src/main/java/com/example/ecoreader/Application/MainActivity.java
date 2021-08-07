@@ -1,40 +1,29 @@
 package com.example.ecoreader.Application;
 
-import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
+import androidx.fragment.app.FragmentTransaction;
 
 import android.app.ActivityManager;
 import android.content.Context;
 import android.content.Intent;
-import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
-import android.widget.TextView;
 
-import com.example.ecoreader.DataRetrieval.NewsObject;
+import com.example.ecoreader.Fragments.RSSFragment;
+import com.example.ecoreader.Fragments.RateFragment;
 import com.example.ecoreader.R;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
-
-import java.lang.reflect.Type;
-import java.util.ArrayList;
-
-import static com.example.ecoreader.Application.GetDataService.ECO_LIST;
-import static com.example.ecoreader.Application.GetDataService.ECO_UPDATES;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 public class MainActivity extends AppCompatActivity {
-    //private static final String TAG = "MainActivity";
-    private TextView txtFetch;
-    private NewsAdapter newsAdapter;
-
-    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+    private BottomNavigationView navigationView;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        initNavView();
 
         GetDataService mService = new GetDataService();
         Intent mServiceIntent = new Intent(this, mService.getClass());
@@ -42,13 +31,45 @@ public class MainActivity extends AppCompatActivity {
             startService(mServiceIntent);
         }
 
-        txtFetch = findViewById(R.id.txtFetch);
-        RecyclerView recView = findViewById(R.id.recView);
-        newsAdapter = new NewsAdapter(this);
-        recView.setLayoutManager(new LinearLayoutManager(this));
-        recView.setAdapter(newsAdapter);
+        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+        transaction.replace(R.id.fragmentContainer, new RSSFragment());
+        transaction.commit();
+    }
 
-        loadNews();
+    private void initNavView() {
+        navigationView = findViewById(R.id.bottomNavView);
+        navigationView.setSelectedItemId(R.id.rssFeed);
+
+        navigationView.setItemOnTouchListener(R.id.rssFeed, new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                navigationView.setSelectedItemId(R.id.rssFeed);
+                FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+                transaction.replace(R.id.fragmentContainer, new RSSFragment());
+                transaction.commit();
+                return true;
+            }
+        });
+
+        navigationView.setItemOnTouchListener(R.id.exchangeRate, new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                navigationView.setSelectedItemId(R.id.exchangeRate);
+                FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+                transaction.replace(R.id.fragmentContainer, new RateFragment());
+                transaction.commit();
+                return true;
+            }
+        });
+
+        navigationView.setItemOnTouchListener(R.id.importExportPrices, new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                navigationView.setSelectedItemId(R.id.importExportPrices);
+                // TODO: 7/08/2021 navigate to fragment
+                return true;
+            }
+        });
     }
 
     private boolean isMyServiceRunning(Class<?> serviceClass) {
@@ -70,16 +91,6 @@ public class MainActivity extends AppCompatActivity {
         broadcastIntent.setClass(this, RestartReceiver.class);
         sendBroadcast(broadcastIntent);
         super.onDestroy();
-    }
-
-    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-    private void loadNews() {
-        Gson gson = new Gson();
-        Type typeToken = new TypeToken<ArrayList<NewsObject>>() {
-        }.getType();
-        ArrayList<NewsObject> newsList = gson.fromJson(getSharedPreferences(ECO_UPDATES, MODE_PRIVATE).getString(ECO_LIST, gson.toJson(new ArrayList<NewsObject>())), typeToken);
-        newsAdapter.setNewsArrayList(newsList);
-        txtFetch.setVisibility(View.GONE);
     }
 
 }
