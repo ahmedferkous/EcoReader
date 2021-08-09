@@ -22,7 +22,7 @@ import retrofit2.Retrofit;
 
 public class GetRatesData extends AsyncTask<String, Void, Void> {
     private static final String TAG = "GetRatesData";
-    public static final String BASE_URL = "api.frankfurter.app";
+    public static final String BASE_URL = "https://api.frankfurter.app/";
     private FinishedRequest onComplete;
     private RateEndpoint endpoint;
 
@@ -70,8 +70,8 @@ public class GetRatesData extends AsyncTask<String, Void, Void> {
                     }
                 });
                 break;
-            case 2:
-                Call<TimeSeriesObject> timeSeriesCall = endpoint.getTimeSeries(strings[0], strings[1]);
+            case 2: // ensure length here is too just to tell it that it's a date
+                Call<TimeSeriesObject> timeSeriesCall = endpoint.getTimeSeries(strings[0]);
                 timeSeriesCall.enqueue(new Callback<TimeSeriesObject>() {
                     @Override
                     public void onResponse(@NotNull Call<TimeSeriesObject> call, @NotNull Response<TimeSeriesObject> response) {

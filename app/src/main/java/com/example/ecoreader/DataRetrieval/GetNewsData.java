@@ -18,6 +18,7 @@ import java.net.URL;
 import java.util.ArrayList;
 
 public class GetNewsData extends AsyncTask<Void, Void, Void> {
+    public static final String BASE_URL = "https://tradingeconomics.com/australia/rss";
     private ArrayList<NewsObject> arrayList;
     private final FinishedRequest onComplete;
 
@@ -41,7 +42,7 @@ public class GetNewsData extends AsyncTask<Void, Void, Void> {
 
     private InputStream getInputStream() {
         try {
-            URL url = new URL("https://tradingeconomics.com/australia/rss");
+            URL url = new URL(BASE_URL);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("GET");
             connection.setDoInput(true);

@@ -11,6 +11,7 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
+import com.example.ecoreader.Fragments.LabourFragment;
 import com.example.ecoreader.Fragments.RSSFragment;
 import com.example.ecoreader.Fragments.RateFragment;
 import com.example.ecoreader.R;
@@ -62,11 +63,13 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        navigationView.setItemOnTouchListener(R.id.importExportPrices, new View.OnTouchListener() {
+        navigationView.setItemOnTouchListener(R.id.labourStats, new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                navigationView.setSelectedItemId(R.id.importExportPrices);
-                // TODO: 7/08/2021 navigate to fragment
+                navigationView.setSelectedItemId(R.id.labourStats);
+                FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+                transaction.replace(R.id.fragmentContainer, new LabourFragment());
+                transaction.commit();
                 return true;
             }
         });

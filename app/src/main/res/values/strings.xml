@@ -1,3 +1,47 @@
 <resources>
     <string name="app_name">EcoReader</string>
+    <string-array name="region">
+        <item>AUSTRALIA</item>
+        <item>NEW_SOUTH_WALES</item>
+        <item>VICTORIA</item>
+        <item>QUEENSLAND</item>
+        <item>SOUTH_AUSTRALIA</item>
+        <item>WESTERN_AUSTRALIA</item>
+        <item>TASMANIA</item>
+        <item>NORTHERN_TERRITORY</item>
+        <item>AUSTRALIAN_CAPITAL_TERRITORY</item>
+    </string-array>
+    <string-array name="data_item">
+        <item>CIVILIAN_POPULATION</item>
+        <item>EMPLOYED_FULL_TIME</item>
+        <item>EMPLOYED_PART_TIME</item>
+        <item>EMPLOYED_PERSONS</item>
+        <item>EMPLOYMENT_TO_POPULATION_RATIO</item>
+        <item>UNEMPLOYED_LOOKING_FOR_FULL_TIME_WORK</item>
+        <item>UNEMPLOYED_LOOKING_FOR_PART_TIME_WORK</item>
+        <item>UNEMPLOYED_PERSONS</item>
+        <item>LABOUR_FORCE_FULL_TIME</item>
+        <item>LABOUR_FORCE_PART_TIME</item>
+        <item>LABOUR_FORCE</item>
+        <item>NOT_IN_THE_LABOUR_FORCE</item>
+        <item>UNEMPLOYMENT_RATE_LOOKING_FOR_PART_TIME_WORK</item>
+        <item>UNEMPLOYMENT_RATE_LOOKING_FOR_FULL_TIME_WORK</item>
+        <item>UNEMPLOYMENT_RATE</item>
+        <item>UNEMPLOYMENT_TO_POPULATION_RATIO_LOOKING_FOR_FULL_TIME_WORK</item>
+        <item>PARTICIPATION_RATE</item>
+    </string-array>
+    <string-array name="age">
+        <item>15_AND_OVER</item>
+        <item>15_TO_19</item>
+    </string-array>
+    <string-array name="sex">
+        <item>MALES</item>
+        <item>FEMALES</item>
+        <item>PERSONS</item>
+    </string-array>
+    <string-array name="adjustment_type">
+        <item>ORIGINAL</item>
+        <item>SEASONALLY_ADJUSTED</item>
+        <item>TREND</item>
+    </string-array>
 </resources>
