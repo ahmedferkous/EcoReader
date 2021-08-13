@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
     android:fitsSystemWindows="true">
 
     <androidx.appcompat.widget.Toolbar
@@ -28,26 +29,72 @@
 
     </androidx.appcompat.widget.Toolbar>
 
-    <RelativeLayout
-        android:layout_width="wrap_content"
-        android:visibility="gone"
+
+    <LinearLayout
+        android:id="@+id/mainLinLayout"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/toolbar"
-        android:layout_centerHorizontal="true">
+        android:orientation="vertical">
 
-        <TextView
+        <LinearLayout
+            android:id="@+id/linLayoutOne"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="1 AUD = 0.74 USD"
-            android:id="@+id/txtEquals"
-            android:textColor="#808080"
-            android:textSize="20sp"
-            android:textStyle="bold"/>
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="2dp"
+            android:orientation="horizontal">
 
-    </RelativeLayout>
+            <EditText
+                android:id="@+id/edtTxtAmount"
+                android:layout_width="100dp"
+                android:hint="1 AUD"
+                android:layout_height="wrap_content"
+                android:background="@drawable/rounded_edttxt"
+                android:inputType="numberDecimal|numberSigned"
+                android:maxLength="12" />
 
 
+            <EditText
+                android:id="@+id/edtTxtConvert"
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:background="@drawable/rounded_edttxt"
+                android:inputType="numberDecimal|numberSigned"
+                android:maxLength="12" />
 
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/linLayoutTwo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="10dp"
+            android:orientation="horizontal">
+
+
+            <Spinner
+                android:id="@+id/spinnerAmountConvert"
+                android:layout_width="wrap_content"
+                android:layout_height="30dp"
+                android:background="@drawable/rounded_edttxt"
+                android:entries="@array/codes"
+                android:spinnerMode="dropdown" />
+
+        </LinearLayout>
+
+
+    </LinearLayout>
+
+    <androidx.fragment.app.FragmentContainerView
+        android:id="@+id/chartFragmentContainer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/mainLinLayout"
+        android:layout_margin="15dp" />
 
 
 </RelativeLayout>

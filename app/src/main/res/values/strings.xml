@@ -44,4 +44,7 @@
         <item>SEASONALLY_ADJUSTED</item>
         <item>TREND</item>
     </string-array>
+    <string-array name="codes">
+        <item>United States Dollar (USD)</item>
+    </string-array>
 </resources>

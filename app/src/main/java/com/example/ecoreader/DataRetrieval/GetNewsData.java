@@ -1,11 +1,12 @@
 package com.example.ecoreader.DataRetrieval;
 
 import android.os.AsyncTask;
+import android.util.Log;
 import android.util.Xml;
 
 import com.example.ecoreader.Adapters.NewsObject;
 import com.example.ecoreader.Application.GetDataService;
-import com.example.ecoreader.DataRetrieval.Interfaces.FinishedRequest;
+import com.example.ecoreader.DataRetrieval.Interfaces.FinishedNewsRequest;
 
 import org.jsoup.Jsoup;
 import org.xmlpull.v1.XmlPullParser;
@@ -18,11 +19,13 @@ import java.net.URL;
 import java.util.ArrayList;
 
 public class GetNewsData extends AsyncTask<Void, Void, Void> {
+    private static final String TAG = "GetNewsData";
     public static final String BASE_URL = "https://tradingeconomics.com/australia/rss";
     private ArrayList<NewsObject> arrayList;
-    private final FinishedRequest onComplete;
+    private final FinishedNewsRequest onComplete;
 
     public GetNewsData(GetDataService service) {
+        Log.d(TAG, "GetNewsData: why are you running");
         arrayList = new ArrayList<>();
         onComplete = service;
     }

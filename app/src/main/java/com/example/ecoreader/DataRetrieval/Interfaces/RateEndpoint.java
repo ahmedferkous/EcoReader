@@ -16,10 +16,7 @@ public interface RateEndpoint {
     Call<LatestRatesObject> getRates(@Query("from") String currency);
 
     @GET("/{date}..") //yyyy-dd-mm
-    Call<TimeSeriesObject> getTimeSeries(@Path("date") String date);
-
-    @GET("/latest")
-    Call<LatestRatesObject> getConversion(@Query("amount") float amount, @Query("from") String from, @Query("to") String to);
+    Call<TimeSeriesObject> getTimeSeries(@Path("date") String date, @Query("from") String from, @Query("to") String to);
 
     @GET("/currencies")
     Call<HashMap<String, String>> getAvailableCurrencies();

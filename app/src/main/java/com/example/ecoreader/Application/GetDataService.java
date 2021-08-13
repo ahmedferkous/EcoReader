@@ -2,6 +2,7 @@ package com.example.ecoreader.Application;
 
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
@@ -13,82 +14,107 @@ import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 
-import com.example.ecoreader.DataRetrieval.Interfaces.FinishedRequest;
+import com.example.ecoreader.DataRetrieval.GetRatesData;
+import com.example.ecoreader.DataRetrieval.Interfaces.FinishedNewsRequest;
 import com.example.ecoreader.DataRetrieval.GetNewsData;
 import com.example.ecoreader.Adapters.NewsObject;
+import com.example.ecoreader.DataRetrieval.Interfaces.FinishedRatesRequest;
 import com.example.ecoreader.DataRetrieval.PlainOldJavaObjects.LatestRatesObject;
 import com.example.ecoreader.DataRetrieval.PlainOldJavaObjects.TimeSeriesObject;
 import com.example.ecoreader.R;
 import com.google.gson.Gson;
 
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
 
 import static com.example.ecoreader.Application.App.CHANNEL_ID_1;
 
-public class GetDataService extends Service implements FinishedRequest {
+// TODO: 13/08/2021 Make fetching of data more efficient
+public class GetDataService extends Service implements FinishedNewsRequest, FinishedRatesRequest {
     @Override
     public void onRetrievedNews(ArrayList<NewsObject> arrayList) { //Only here
         writeNews(arrayList);
     }
 
     @Override
-    public void onReceivedRates(LatestRatesObject latestRatesObject) { //Only here
+    public void onReceivedRates(LatestRatesObject latestRatesObject) { //this
         HashMap<String, Float> rates = latestRatesObject.getRates();
-        SharedPreferences.Editor editor = getEditor();
-        editor.putString(RATES, gson.toJson(rates));
+        SharedPreferences.Editor editor = getEditor(this);
+        editor.putString(SAVED_RATES, gson.toJson(rates));
         editor.apply();
     }
 
     @Override
-    public void onReceivedTimeSeries(TimeSeriesObject timeSeriesObject) {  // only ran in RateFragment
-       /*
+    public void onReceivedTimeSeries(TimeSeriesObject timeSeriesObject) {  //this
        HashMap<String, HashMap<String, Double>> timeSeries = timeSeriesObject.getRates();
-       SharedPreferences.Editor editor = getEditor();
-       editor.putString(TIME_SERIES, gson.toJson(timeSeries));
+       SharedPreferences.Editor editor = getEditor(this);
+       editor.putString(SAVED_TIME_SERIES, gson.toJson(timeSeries));
        editor.apply();
-        */
-
     }
 
     @Override
-    public void onReceivedConversion(float convertedAmount) { //both
-        SharedPreferences.Editor editor = getEditor();
-        editor.putFloat(CONVERT_AMOUNT, convertedAmount);
-        editor.apply();
-    }
-
-    @Override
-    public void availableCurrencies(HashMap<String, String> currenciesMap) { //Only here
-        SharedPreferences.Editor editor = getEditor();
-        editor.putString(AVAILABLE_CURRENCIES, gson.toJson(currenciesMap));
+    public void availableCurrencies(HashMap<String, String> currenciesMap) { //this
+        Log.d(TAG, "availableCurrencies: rate received " + currenciesMap.size());
+        SharedPreferences.Editor editor = getEditor(this);
+        editor.putString(SAVED_AVAILABLE_CURRENCIES, gson.toJson(currenciesMap));
         editor.apply();
     }
 
     private static final String TAG = "GetDataService";
     public static final String ECO_UPDATES = "news_updates";
-    public static final String RATES = "rates";
-    public static final String TIME_SERIES = "time_series";
-    public static final String CONVERT_AMOUNT = "convert_amount";
-    public static final String AVAILABLE_CURRENCIES = "available_currencies";
     public static final String ECO_LIST = "eco_list";
+    public static final String SAVED_AVAILABLE_CURRENCIES = "available_currencies";
+    public static final String SAVED_RATES = "rates";
+    public static final String SAVED_TIME_SERIES = "time_series";
+    public static final String AUD_CODE = "AUD";
+    public static final String USD_CODE = "USD";
 
-    private GetNewsData downloadAsyncTask;
+
+    private GetNewsData downloadNewsTask;
+    private GetRatesData downloadCurrenciesTask;
+    private GetRatesData downloadRatesTask;
+    private GetRatesData downloadGraphDataTask;
     private Gson gson = new Gson();
     private final Handler handler = new Handler();
     private final Runnable newsPeriodicUpdate = new Runnable() {
         @Override
         public void run() {
             handler.postDelayed(newsPeriodicUpdate, 7200000); // 2 hours later
-            downloadAsyncTask = new GetNewsData(GetDataService.this);
-            downloadAsyncTask.execute();
+            downloadNewsTask = new GetNewsData(GetDataService.this);
+            downloadNewsTask.execute();
         }
     };
+    private final Runnable ratesPeriodicUpdate = new Runnable() {
+        @Override
+        public void run() {
+            handler.postDelayed(ratesPeriodicUpdate, 86000000); // 86000000  1 day later
+            downloadCurrenciesTask = new GetRatesData(GetDataService.this);
+            downloadRatesTask = new GetRatesData(GetDataService.this);
+            //downloadGraphDataTask = new GetRatesData(GetDataService.this);
+
+            downloadCurrenciesTask.execute();
+            downloadRatesTask.execute(AUD_CODE);
+            //downloadGraphDataTask.execute(getCurrentDate(), AUD_CODE, USD_CODE);
+        }
+    };
+
+    private String getCurrentDate() {
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(Calendar.getInstance().getTime());
+        cal.add(Calendar.DATE, -7);
+        String newDate = new SimpleDateFormat("yyyy-MM-dd").format(cal.getTime());
+        cal.add(Calendar.DATE, 7);
+        return newDate;
+    }
 
     @Override
     public void onCreate() {
         super.onCreate();
-        startOwnForeground();
+        //startOwnForeground();
     }
 
     private void startOwnForeground() {
@@ -108,16 +134,33 @@ public class GetDataService extends Service implements FinishedRequest {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        handler.postDelayed(newsPeriodicUpdate, 10000);
+        //handler.postDelayed(newsPeriodicUpdate, 10000);
+        handler.postDelayed(ratesPeriodicUpdate, 10000);
+        Log.d(TAG, "onStartCommand: Ran");
         return START_STICKY;
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        if (downloadAsyncTask != null) {
-            if (!downloadAsyncTask.isCancelled()) {
-                downloadAsyncTask.cancel(true);
+        if (downloadNewsTask != null) {
+            if (!downloadNewsTask.isCancelled()) {
+                downloadNewsTask.cancel(true);
+            }
+        }
+        if (downloadCurrenciesTask != null) {
+            if (!downloadCurrenciesTask.isCancelled()) {
+                downloadCurrenciesTask.cancel(true);
+            }
+        }
+        if (downloadGraphDataTask!= null) {
+            if (!downloadGraphDataTask.isCancelled()) {
+                downloadGraphDataTask.cancel(true);
+            }
+        }
+        if (downloadRatesTask != null) {
+            if (!downloadRatesTask.isCancelled()) {
+                downloadRatesTask.cancel(true);
             }
         }
         Intent broadcastIntent = new Intent();
@@ -126,14 +169,14 @@ public class GetDataService extends Service implements FinishedRequest {
         sendBroadcast(broadcastIntent);
     }
 
-    private SharedPreferences.Editor getEditor() {
-        SharedPreferences sharedPreferences = getSharedPreferences(ECO_UPDATES, MODE_PRIVATE);
+    public static SharedPreferences.Editor getEditor(Context context) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(ECO_UPDATES, MODE_PRIVATE);
         return sharedPreferences.edit();
     }
 
     private void writeNews(ArrayList<NewsObject> newsList) {
         if (newsList.size() > 0) {
-            SharedPreferences.Editor edit = getEditor();
+            SharedPreferences.Editor edit = getEditor(this);
             edit.putString(ECO_LIST, gson.toJson(newsList));
             edit.apply();
             Log.d(TAG, "writeToPreferences: Written!!");

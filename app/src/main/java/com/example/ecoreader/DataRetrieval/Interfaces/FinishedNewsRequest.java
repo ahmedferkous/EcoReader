@@ -7,14 +7,6 @@ import com.example.ecoreader.DataRetrieval.PlainOldJavaObjects.TimeSeriesObject;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-public interface FinishedRequest {
+public interface FinishedNewsRequest {
     void onRetrievedNews(ArrayList<NewsObject> arrayList);
-
-    void onReceivedRates(LatestRatesObject latestRatesObject);
-
-    void onReceivedTimeSeries(TimeSeriesObject timeSeriesObject);
-
-    void onReceivedConversion(float convertedAmount);
-
-    void availableCurrencies(HashMap<String, String> currenciesMap);
 }
