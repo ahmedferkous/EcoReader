@@ -29,6 +29,7 @@ import com.google.gson.reflect.TypeToken;
 import java.lang.reflect.Type;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 
 import static android.content.Context.MODE_PRIVATE;
@@ -39,28 +40,15 @@ import static com.example.ecoreader.Application.GetDataService.SAVED_RATES;
 import static com.example.ecoreader.Application.GetDataService.USD_CODE;
 
 // TODO: 13/08/2021 Save data for fragment transactions 
-public class RateFragment extends Fragment implements FinishedRatesRequest {
+public class RateFragment extends Fragment{
     private static final String TAG = "RateFragment";
-    @Override
-    public void onReceivedRates(LatestRatesObject latestRatesObject) {
 
-    }
-
-    @Override
-    public void onReceivedTimeSeries(TimeSeriesObject timeSeriesObject) { //only this
-
-    }
-
-
-    @Override
-    public void availableCurrencies(HashMap<String, String> currenciesMap) {
-
-    }
     private ArrayList<String> spinnerArray = new ArrayList<>();
     private HashMap<String, Float> rates = new HashMap<>();
     private Spinner spinner;
     private TextView txtEquals;
     private EditText edtTxtAmount, edtTxtConvert;
+    private ChartFragment childFragment;
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -79,6 +67,7 @@ public class RateFragment extends Fragment implements FinishedRatesRequest {
                 txtEquals.setText(data);
                 edtTxtConvert.setText("");
                 edtTxtAmount.setText("");
+                childFragment.retrieveChartStats(currencyCode);
             }
 
             @Override
@@ -148,7 +137,7 @@ public class RateFragment extends Fragment implements FinishedRatesRequest {
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        ChartFragment childFragment = new ChartFragment();
+        childFragment = new ChartFragment();
         FragmentTransaction transaction = getChildFragmentManager().beginTransaction();
         transaction.replace(R.id.chartFragmentContainer, childFragment).commit();
     }
@@ -193,6 +182,7 @@ public class RateFragment extends Fragment implements FinishedRatesRequest {
                     defaultStr = newRate;
                 }
             }
+            Collections.sort(spinnerArray);
             spinnerArray.set(0, defaultStr);
             ArrayAdapter<String> spinnerArrayAdapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_item,
                     spinnerArray);

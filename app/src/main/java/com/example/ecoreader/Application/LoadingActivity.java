@@ -98,7 +98,7 @@ public class LoadingActivity extends AppCompatActivity{
 
     private void navigateToMainActivity() {
         txtFetch.setText("Finished Loading!");
-        progressBar.setVisibility(View.GONE);
+        progressBar.setProgress(4);
         imageView.setAnimation(null);
         imageView.setVisibility(View.GONE);
         new Thread() {
@@ -113,7 +113,7 @@ public class LoadingActivity extends AppCompatActivity{
                     @Override
                     public void run() {
                         Intent mainIntent = new Intent(LoadingActivity.this, MainActivity.class);
-                        mainIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                        mainIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
                         overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
                         startActivity(mainIntent);
                     }

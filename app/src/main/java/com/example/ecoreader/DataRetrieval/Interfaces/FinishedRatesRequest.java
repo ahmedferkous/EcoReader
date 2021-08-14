@@ -8,7 +8,7 @@ import java.util.HashMap;
 public interface FinishedRatesRequest {
     void onReceivedRates(LatestRatesObject latestRatesObject);
 
-    void onReceivedTimeSeries(TimeSeriesObject timeSeriesObject);
+    void onReceivedTimeSeries(TimeSeriesObject timeSeriesObject, String currencyCode);
 
     void availableCurrencies(HashMap<String, String> currenciesMap);
 }

@@ -9,6 +9,7 @@ import com.example.ecoreader.DataRetrieval.Interfaces.FinishedRatesRequest;
 import com.example.ecoreader.DataRetrieval.Interfaces.RateEndpoint;
 import com.example.ecoreader.DataRetrieval.PlainOldJavaObjects.LatestRatesObject;
 import com.example.ecoreader.DataRetrieval.PlainOldJavaObjects.TimeSeriesObject;
+import com.example.ecoreader.Fragments.ChartFragment;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -30,6 +31,11 @@ public class GetRatesData extends AsyncTask<String, Void, Void> {
 
     public GetRatesData(GetDataService service) {
         onComplete = service;
+        initEndpoint();
+    }
+
+    public GetRatesData(ChartFragment fragment) {
+        onComplete = fragment;
         initEndpoint();
     }
 
@@ -61,9 +67,9 @@ public class GetRatesData extends AsyncTask<String, Void, Void> {
                         Log.d(TAG, "onResponse: code: " + response.code());
                         if (response.isSuccessful()) {
                             TimeSeriesObject receivedObject = response.body();
-                            onComplete.onReceivedTimeSeries(receivedObject);
+                            onComplete.onReceivedTimeSeries(receivedObject, strings[2]);
                         } else {
-                            onComplete.onReceivedTimeSeries(null);
+                            onComplete.onReceivedTimeSeries(null, "");
                         }
                     }
 

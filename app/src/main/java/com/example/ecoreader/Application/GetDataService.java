@@ -34,7 +34,6 @@ import java.util.HashMap;
 
 import static com.example.ecoreader.Application.App.CHANNEL_ID_1;
 
-// TODO: 13/08/2021 Make fetching of data more efficient
 public class GetDataService extends Service implements FinishedNewsRequest, FinishedRatesRequest {
     @Override
     public void onRetrievedNews(ArrayList<NewsObject> arrayList) { //Only here
@@ -52,11 +51,8 @@ public class GetDataService extends Service implements FinishedNewsRequest, Fini
     }
 
     @Override
-    public void onReceivedTimeSeries(TimeSeriesObject timeSeriesObject) {  //this
-       HashMap<String, HashMap<String, Double>> timeSeries = timeSeriesObject.getRates();
-       SharedPreferences.Editor editor = getEditor(this);
-       editor.putString(SAVED_TIME_SERIES, gson.toJson(timeSeries));
-       editor.apply();
+    public void onReceivedTimeSeries(TimeSeriesObject timeSeriesObject, String currencyCode) {
+
     }
 
     @Override
@@ -81,7 +77,6 @@ public class GetDataService extends Service implements FinishedNewsRequest, Fini
     private GetNewsData downloadNewsTask;
     private GetRatesData downloadCurrenciesTask;
     private GetRatesData downloadRatesTask;
-    private GetRatesData downloadGraphDataTask;
     private Gson gson = new Gson();
     private final Handler handler = new Handler();
     private final Runnable newsPeriodicUpdate = new Runnable() {
@@ -98,11 +93,9 @@ public class GetDataService extends Service implements FinishedNewsRequest, Fini
             handler.postDelayed(ratesPeriodicUpdate, 86000000); // 86000000  1 day later
             downloadCurrenciesTask = new GetRatesData(GetDataService.this);
             downloadRatesTask = new GetRatesData(GetDataService.this);
-            downloadGraphDataTask = new GetRatesData(GetDataService.this);
 
             downloadCurrenciesTask.execute();
             downloadRatesTask.execute(AUD_CODE);
-            //downloadGraphDataTask.execute(getCurrentDate(), AUD_CODE, USD_CODE);
         }
     };
 
@@ -121,8 +114,8 @@ public class GetDataService extends Service implements FinishedNewsRequest, Fini
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         data = intent.getParcelableExtra("pendingIntent");
-        handler.postDelayed(newsPeriodicUpdate, 10000);
-        handler.postDelayed(ratesPeriodicUpdate, 10000);
+        handler.postDelayed(newsPeriodicUpdate, 1000);
+        handler.postDelayed(ratesPeriodicUpdate, 1000);
         return START_STICKY;
     }
 
@@ -137,11 +130,6 @@ public class GetDataService extends Service implements FinishedNewsRequest, Fini
         if (downloadCurrenciesTask != null) {
             if (!downloadCurrenciesTask.isCancelled()) {
                 downloadCurrenciesTask.cancel(true);
-            }
-        }
-        if (downloadGraphDataTask!= null) {
-            if (!downloadGraphDataTask.isCancelled()) {
-                downloadGraphDataTask.cancel(true);
             }
         }
         if (downloadRatesTask != null) {
@@ -163,15 +151,6 @@ public class GetDataService extends Service implements FinishedNewsRequest, Fini
         } catch (PendingIntent.CanceledException e) {
             e.printStackTrace();
         }
-    }
-
-    private String getCurrentDate() {
-        Calendar cal = Calendar.getInstance();
-        cal.setTime(Calendar.getInstance().getTime());
-        cal.add(Calendar.DATE, -7);
-        String newDate = new SimpleDateFormat("yyyy-MM-dd").format(cal.getTime());
-        cal.add(Calendar.DATE, 7);
-        return newDate;
     }
 
     private void startOwnForeground() {

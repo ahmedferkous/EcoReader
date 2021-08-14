@@ -7,21 +7,13 @@ public class TimeSeriesObject {
     private String base;
     private String start_date;
     private String end_date;
-    private HashMap<String, HashMap<String, Double>> rates;
+    private HashMap<String, HashMap<String, Float>> rates;
 
-    public TimeSeriesObject(float amount, String base, String start_date, String end_date, HashMap<String, HashMap<String, Double>> rates) {
+    public TimeSeriesObject(float amount, String base, String start_date, String end_date, HashMap<String, HashMap<String, Float>> rates) {
         this.amount = amount;
         this.base = base;
         this.start_date = start_date;
         this.end_date = end_date;
-        this.rates = rates;
-    }
-
-    public HashMap<String, HashMap<String, Double>> getRates() {
-        return rates;
-    }
-
-    public void setRates(HashMap<String, HashMap<String, Double>> rates) {
         this.rates = rates;
     }
 
@@ -30,10 +22,6 @@ public class TimeSeriesObject {
     }
 
     public void setAmount(float amount) {
-        this.amount = amount;
-    }
-
-    public void setAmount(int amount) {
         this.amount = amount;
     }
 
@@ -61,4 +49,11 @@ public class TimeSeriesObject {
         this.end_date = end_date;
     }
 
+    public HashMap<String, HashMap<String, Float>> getRates() {
+        return rates;
+    }
+
+    public void setRates(HashMap<String, HashMap<String, Float>> rates) {
+        this.rates = rates;
+    }
 }
