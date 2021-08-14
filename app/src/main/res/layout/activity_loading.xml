@@ -28,7 +28,6 @@
         app:animated="true"
         app:bootstrapBrand="primary"
         app:bootstrapMaxProgress="3"
-        app:bootstrapProgress="2"
         app:striped="true" />
 
     <ImageView

@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
+import android.os.Binder;
 import android.os.Handler;
 import android.os.IBinder;
 import android.util.Log;
@@ -38,6 +39,7 @@ public class GetDataService extends Service implements FinishedNewsRequest, Fini
     @Override
     public void onRetrievedNews(ArrayList<NewsObject> arrayList) { //Only here
         writeNews(arrayList);
+        sendPendingIntent();
     }
 
     @Override
@@ -46,6 +48,7 @@ public class GetDataService extends Service implements FinishedNewsRequest, Fini
         SharedPreferences.Editor editor = getEditor(this);
         editor.putString(SAVED_RATES, gson.toJson(rates));
         editor.apply();
+        sendPendingIntent();
     }
 
     @Override
@@ -62,6 +65,7 @@ public class GetDataService extends Service implements FinishedNewsRequest, Fini
         SharedPreferences.Editor editor = getEditor(this);
         editor.putString(SAVED_AVAILABLE_CURRENCIES, gson.toJson(currenciesMap));
         editor.apply();
+        sendPendingIntent();
     }
 
     private static final String TAG = "GetDataService";
@@ -73,6 +77,7 @@ public class GetDataService extends Service implements FinishedNewsRequest, Fini
     public static final String AUD_CODE = "AUD";
     public static final String USD_CODE = "USD";
 
+    private PendingIntent data;
     private GetNewsData downloadNewsTask;
     private GetRatesData downloadCurrenciesTask;
     private GetRatesData downloadRatesTask;
@@ -97,7 +102,7 @@ public class GetDataService extends Service implements FinishedNewsRequest, Fini
 
             downloadCurrenciesTask.execute();
             downloadRatesTask.execute(AUD_CODE);
-            downloadGraphDataTask.execute(getCurrentDate(), AUD_CODE, USD_CODE);
+            //downloadGraphDataTask.execute(getCurrentDate(), AUD_CODE, USD_CODE);
         }
     };
 
@@ -115,8 +120,9 @@ public class GetDataService extends Service implements FinishedNewsRequest, Fini
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        data = intent.getParcelableExtra("pendingIntent");
         handler.postDelayed(newsPeriodicUpdate, 10000);
-        //handler.postDelayed(ratesPeriodicUpdate, 10000);
+        handler.postDelayed(ratesPeriodicUpdate, 10000);
         return START_STICKY;
     }
 
@@ -147,6 +153,16 @@ public class GetDataService extends Service implements FinishedNewsRequest, Fini
         broadcastIntent.setAction("restartservice");
         broadcastIntent.setClass(this, RestartReceiver.class);
         sendBroadcast(broadcastIntent);
+    }
+
+    private void sendPendingIntent() {
+        try {
+            if (data != null) {
+                data.send(this, LoadingActivity.COMPLETE_DATA, null);
+            }
+        } catch (PendingIntent.CanceledException e) {
+            e.printStackTrace();
+        }
     }
 
     private String getCurrentDate() {

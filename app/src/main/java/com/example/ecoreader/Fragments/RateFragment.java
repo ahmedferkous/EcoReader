@@ -11,6 +11,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.Spinner;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -35,6 +36,7 @@ import static com.example.ecoreader.Application.GetDataService.AUD_CODE;
 import static com.example.ecoreader.Application.GetDataService.ECO_UPDATES;
 import static com.example.ecoreader.Application.GetDataService.SAVED_AVAILABLE_CURRENCIES;
 import static com.example.ecoreader.Application.GetDataService.SAVED_RATES;
+import static com.example.ecoreader.Application.GetDataService.USD_CODE;
 
 // TODO: 13/08/2021 Save data for fragment transactions 
 public class RateFragment extends Fragment implements FinishedRatesRequest {
@@ -57,6 +59,7 @@ public class RateFragment extends Fragment implements FinishedRatesRequest {
     private ArrayList<String> spinnerArray = new ArrayList<>();
     private HashMap<String, Float> rates = new HashMap<>();
     private Spinner spinner;
+    private TextView txtEquals;
     private EditText edtTxtAmount, edtTxtConvert;
     @Nullable
     @Override
@@ -65,12 +68,15 @@ public class RateFragment extends Fragment implements FinishedRatesRequest {
         edtTxtAmount = view.findViewById(R.id.edtTxtAmount);
         edtTxtConvert = view.findViewById(R.id.edtTxtConvert);
         spinner = view.findViewById(R.id.spinnerAmountConvert);
+        txtEquals = view.findViewById(R.id.txtEquals);
 
         spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 String currencyCode = getCurrencyCode(spinnerArray.get(position));
-                edtTxtConvert.setHint(convertCurrency(currencyCode, 1, true) + " " + currencyCode);
+                //edtTxtConvert.setHint(convertCurrency(currencyCode, 1, true) + " " + currencyCode);
+                String data = "1 AUD = " + convertCurrency(currencyCode, 1, true) + " " + currencyCode;
+                txtEquals.setText(data);
                 edtTxtConvert.setText("");
                 edtTxtAmount.setText("");
             }
@@ -134,8 +140,8 @@ public class RateFragment extends Fragment implements FinishedRatesRequest {
             }
         });
 
-        loadCurrencies();
         loadRates();
+        loadCurrencies();
 
         return view;
     }
@@ -167,6 +173,8 @@ public class RateFragment extends Fragment implements FinishedRatesRequest {
         Gson gson = new Gson();
         Type ratesTypeToken = new TypeToken<HashMap<String, Float>>(){}.getType();
         rates = gson.fromJson(getContext().getSharedPreferences(ECO_UPDATES, MODE_PRIVATE).getString(SAVED_RATES, gson.toJson(new ArrayList<NewsObject>())), ratesTypeToken);
+        String data = "1 AUD = " + convertCurrency(USD_CODE, 1, true) + " " + USD_CODE;
+        txtEquals.setText(data);
     }
 
     private void loadCurrencies() {
@@ -175,14 +183,17 @@ public class RateFragment extends Fragment implements FinishedRatesRequest {
         HashMap<String, String> currencies = gson.fromJson(getContext().getSharedPreferences(ECO_UPDATES, MODE_PRIVATE).getString(SAVED_AVAILABLE_CURRENCIES, gson.toJson(new ArrayList<NewsObject>())), currencyTypeToken);
         if (currencies != null) {
             spinnerArray = new ArrayList<>(currencies.size());
-
+            String defaultStr = "";
             for (String currencyCode : currencies.keySet()) {
-                if (!currencyCode.equals(AUD_CODE)) {
-                    String newRate = currencies.get(currencyCode) + " (" + currencyCode + ")";
+                String newRate = currencies.get(currencyCode) + " (" + currencyCode + ")";
+                if (!currencyCode.equals(AUD_CODE) && !(currencyCode.equals(USD_CODE))) {
                     spinnerArray.add(newRate);
                 }
+                if (currencyCode.equals(USD_CODE)) {
+                    defaultStr = newRate;
+                }
             }
-
+            spinnerArray.set(0, defaultStr);
             ArrayAdapter<String> spinnerArrayAdapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_item,
                     spinnerArray);
             spinnerArrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);

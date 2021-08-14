@@ -29,12 +29,23 @@
 
     </androidx.appcompat.widget.Toolbar>
 
+    <TextView
+        android:id="@+id/txtEquals"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/toolbar"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="10dp"
+        android:text=""
+        android:textSize="18sp"
+        android:textStyle="bold" />
+
 
     <LinearLayout
         android:id="@+id/mainLinLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/toolbar"
+        android:layout_below="@id/txtEquals"
         android:orientation="vertical">
 
         <LinearLayout
@@ -48,7 +59,7 @@
             <EditText
                 android:id="@+id/edtTxtAmount"
                 android:layout_width="100dp"
-                android:hint="1 AUD"
+                android:hint="Amount"
                 android:layout_height="wrap_content"
                 android:background="@drawable/rounded_edttxt"
                 android:inputType="numberDecimal|numberSigned"
@@ -58,6 +69,7 @@
             <EditText
                 android:id="@+id/edtTxtConvert"
                 android:layout_width="100dp"
+                android:hint="Conversion"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="10dp"
                 android:background="@drawable/rounded_edttxt"
