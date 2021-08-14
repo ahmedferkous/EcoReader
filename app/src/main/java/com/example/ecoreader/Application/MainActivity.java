@@ -25,16 +25,9 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         initNavView();
 
-        GetDataService mService = new GetDataService();
-        Intent mServiceIntent = new Intent(this, mService.getClass());
-        if (!isMyServiceRunning(mService.getClass())) {
-            startService(mServiceIntent);
-        }
-
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
         transaction.replace(R.id.fragmentContainer, new RSSFragment());
         transaction.commit();
-
     }
 
     private void initNavView() {
@@ -73,27 +66,6 @@ public class MainActivity extends AppCompatActivity {
                 return true;
             }
         });
-    }
-
-    private boolean isMyServiceRunning(Class<?> serviceClass) {
-        ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
-        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
-            if (serviceClass.getName().equals(service.service.getClassName())) {
-                Log.i("Service status", "Running");
-                return true;
-            }
-        }
-        Log.i("Service status", "Not running");
-        return false;
-    }
-
-    @Override
-    protected void onDestroy() {
-        Intent broadcastIntent = new Intent();
-        broadcastIntent.setAction("restartservice");
-        broadcastIntent.setClass(this, RestartReceiver.class);
-        sendBroadcast(broadcastIntent);
-        super.onDestroy();
     }
 
 }

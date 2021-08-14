@@ -73,7 +73,6 @@ public class GetDataService extends Service implements FinishedNewsRequest, Fini
     public static final String AUD_CODE = "AUD";
     public static final String USD_CODE = "USD";
 
-
     private GetNewsData downloadNewsTask;
     private GetRatesData downloadCurrenciesTask;
     private GetRatesData downloadRatesTask;
@@ -83,7 +82,7 @@ public class GetDataService extends Service implements FinishedNewsRequest, Fini
     private final Runnable newsPeriodicUpdate = new Runnable() {
         @Override
         public void run() {
-            handler.postDelayed(newsPeriodicUpdate, 7200000); // 2 hours later
+            handler.postDelayed(newsPeriodicUpdate, 7200000); // 7200000 2 hours later
             downloadNewsTask = new GetNewsData(GetDataService.this);
             downloadNewsTask.execute();
         }
@@ -94,36 +93,18 @@ public class GetDataService extends Service implements FinishedNewsRequest, Fini
             handler.postDelayed(ratesPeriodicUpdate, 86000000); // 86000000  1 day later
             downloadCurrenciesTask = new GetRatesData(GetDataService.this);
             downloadRatesTask = new GetRatesData(GetDataService.this);
-            //downloadGraphDataTask = new GetRatesData(GetDataService.this);
+            downloadGraphDataTask = new GetRatesData(GetDataService.this);
 
             downloadCurrenciesTask.execute();
             downloadRatesTask.execute(AUD_CODE);
-            //downloadGraphDataTask.execute(getCurrentDate(), AUD_CODE, USD_CODE);
+            downloadGraphDataTask.execute(getCurrentDate(), AUD_CODE, USD_CODE);
         }
     };
-
-    private String getCurrentDate() {
-        Calendar cal = Calendar.getInstance();
-        cal.setTime(Calendar.getInstance().getTime());
-        cal.add(Calendar.DATE, -7);
-        String newDate = new SimpleDateFormat("yyyy-MM-dd").format(cal.getTime());
-        cal.add(Calendar.DATE, 7);
-        return newDate;
-    }
 
     @Override
     public void onCreate() {
         super.onCreate();
-        //startOwnForeground();
-    }
-
-    private void startOwnForeground() {
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID_1)
-                .setOngoing(true)
-                .setContentTitle("App is running in background")
-                .setPriority(NotificationManagerCompat.IMPORTANCE_MIN);
-        startForeground(1, builder.build());
-
+        startOwnForeground();
     }
 
     @Nullable
@@ -134,9 +115,8 @@ public class GetDataService extends Service implements FinishedNewsRequest, Fini
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        //handler.postDelayed(newsPeriodicUpdate, 10000);
-        handler.postDelayed(ratesPeriodicUpdate, 10000);
-        Log.d(TAG, "onStartCommand: Ran");
+        handler.postDelayed(newsPeriodicUpdate, 10000);
+        //handler.postDelayed(ratesPeriodicUpdate, 10000);
         return START_STICKY;
     }
 
@@ -167,6 +147,24 @@ public class GetDataService extends Service implements FinishedNewsRequest, Fini
         broadcastIntent.setAction("restartservice");
         broadcastIntent.setClass(this, RestartReceiver.class);
         sendBroadcast(broadcastIntent);
+    }
+
+    private String getCurrentDate() {
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(Calendar.getInstance().getTime());
+        cal.add(Calendar.DATE, -7);
+        String newDate = new SimpleDateFormat("yyyy-MM-dd").format(cal.getTime());
+        cal.add(Calendar.DATE, 7);
+        return newDate;
+    }
+
+    private void startOwnForeground() {
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID_1)
+                .setOngoing(true)
+                .setContentTitle("App is running in background")
+                .setPriority(NotificationManagerCompat.IMPORTANCE_MIN);
+        startForeground(1, builder.build());
+
     }
 
     public static SharedPreferences.Editor getEditor(Context context) {
