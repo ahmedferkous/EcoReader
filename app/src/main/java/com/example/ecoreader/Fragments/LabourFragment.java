@@ -34,7 +34,6 @@ import static com.example.ecoreader.DataRetrieval.GetLabourStatsData.UNEMPLOYED_
 public class LabourFragment extends Fragment {
     private static final String TAG = "LabourFragment";
     private int population, unemployedPersons, employedFullTime, unemployedLookingForFullTimeWork, employedPersons, labourForce, notInLabourForce, employedPartTime, unemployedLookingForPartTimeWork;
-    private float employmentToPopulationRatio;
     private String unemploymentRate, participationRate;
     private TextView txtNotInWorkforce, txtEmployed, txtUnemployed, txtTotalPopulation, txtUnemploymentRate, txtParticipationRate, txtEmployedFullTime, txtEmployedPartTime, txtUnemployedFullTime, txtUnemployedPartTime, txtTotalLabourForce;
     private PieChart pieChartPop, pieChartLab;
@@ -71,7 +70,7 @@ public class LabourFragment extends Fragment {
             DecimalFormat format = new DecimalFormat("#0.00");
             SharedPreferences preferences = getContext().getSharedPreferences(ECO_UPDATES, MODE_PRIVATE);
             population = preferences.getInt(CIVILIAN_POPULATION, 1);
-            employmentToPopulationRatio = preferences.getFloat(EMPLOYMENT_TO_POPULATION_RATIO, 1);
+            float employmentToPopulationRatio = preferences.getFloat(EMPLOYMENT_TO_POPULATION_RATIO, 1);
             unemployedPersons = preferences.getInt(UNEMPLOYED_PERSONS, 1);
             employedFullTime = preferences.getInt(EMPLOYED_FULL_TIME, 1);
             unemployedLookingForFullTimeWork = preferences.getInt(UNEMPLOYED_LOOKING_FOR_FULL_TIME_WORK, 1);

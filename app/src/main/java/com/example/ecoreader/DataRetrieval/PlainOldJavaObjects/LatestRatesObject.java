@@ -4,7 +4,6 @@ import androidx.room.Entity;
 
 import java.util.HashMap;
 
-@Entity
 public class LatestRatesObject {
     private float amount;
     private String base;

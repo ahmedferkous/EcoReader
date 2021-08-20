@@ -186,7 +186,7 @@ public class ChartFragment extends Fragment implements FinishedRatesRequest, Dat
         }
     }
 
-    private class LineChartXAxisValueFormatter extends IndexAxisValueFormatter {
+    private static class LineChartXAxisValueFormatter extends IndexAxisValueFormatter {
         @Override
         public String getFormattedValue(float value, AxisBase axis) {
             // Convert float value to date string

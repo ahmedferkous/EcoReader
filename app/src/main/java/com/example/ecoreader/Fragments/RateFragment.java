@@ -113,7 +113,7 @@ public class RateFragment extends Fragment{
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 String amount = s + "";
-                if (amount.length() > 0) {
+                if (amount.length() > 0 && !((amount.charAt(0)+"").equals("."))) {
                     double amountToConvert = Double.parseDouble(amount);
                     if (amountToConvert > 0.0) {
                         edtTxtConvert.setText(convertCurrency(getCurrencyCode((String) spinner.getSelectedItem()), amountToConvert, true));

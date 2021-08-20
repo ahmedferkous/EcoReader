@@ -67,8 +67,7 @@ public class DateDialogFragment extends DialogFragment {
 
     private long dateToEpoch(String date) {
         try {
-            long epoch = new SimpleDateFormat("yyyy-MM-dd").parse(date).getTime();
-            return epoch;
+            return new SimpleDateFormat("yyyy-MM-dd").parse(date).getTime();
         } catch (ParseException e) {
             e.printStackTrace();
         }
