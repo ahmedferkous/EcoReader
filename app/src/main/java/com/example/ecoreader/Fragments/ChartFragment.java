@@ -55,6 +55,7 @@ import static com.example.ecoreader.Application.GetDataService.USD_CODE;
 
 public class ChartFragment extends Fragment implements FinishedRatesRequest, DateDialogFragment.onDateChosen {
     private static final String TAG = "ChartFragment";
+    private GetRatesData ratesTask;
     @Override
     public void dateResult(String date) {
         chosenDate = date;
@@ -118,14 +119,17 @@ public class ChartFragment extends Fragment implements FinishedRatesRequest, Dat
         mChart.getDescription().setText("");
         mChart.getXAxis().setLabelCount(5);
         mChart.setNoDataText("");
-        retrieveChartStats(USD_CODE);
+        txtNotiFetch.setVisibility(View.VISIBLE);
+        mChart.setVisibility(View.GONE);
+        changeDate.setVisibility(View.GONE);
     }
 
     public void retrieveChartStats(String currencyCode) {
         txtNotiFetch.setVisibility(View.VISIBLE);
         mChart.setVisibility(View.GONE);
         changeDate.setVisibility(View.GONE);
-        new GetRatesData(this).execute(chosenDate, AUD_CODE, currencyCode);
+        ratesTask = new GetRatesData(this);
+        ratesTask.execute(chosenDate, AUD_CODE, currencyCode);
     }
 
     private void convertRatesToData(HashMap<String, HashMap<String, Float>> rates, String currencyCode) {
@@ -148,6 +152,16 @@ public class ChartFragment extends Fragment implements FinishedRatesRequest, Dat
         }
 
         initData(values, currencyCode);
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        if (ratesTask != null) {
+            if (!ratesTask.isCancelled()) {
+                ratesTask.cancel(true);
+            }
+        }
     }
 
     private void initData(ArrayList<Entry> values, String currencyCode) {

@@ -27,7 +27,7 @@
         android:layout_centerInParent="true"
         app:animated="true"
         app:bootstrapBrand="primary"
-        app:bootstrapMaxProgress="4"
+        app:bootstrapMaxProgress="8"
         app:striped="true" />
 
     <ImageView

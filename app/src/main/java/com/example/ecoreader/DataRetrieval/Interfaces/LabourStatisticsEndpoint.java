@@ -12,7 +12,13 @@ public interface LabourStatisticsEndpoint {
     @GET("labour-force-statistics")
     Call<StatisticsObject> receiveStats(@Query("region") String region, @Query("sex") String sex,
                                         @Query("data_item") String data_item, @Query("age") String age,
-                                        @Query("adjustment_type") String adjustment_type,
-                                        @Query("start_period") String start_period,
-                                        @Query("end_period") String end_period);
+                                        @Query("adjustment_type") String adjustment_type);
+
+    @Headers({"apikey: a5346b2e-8b4f-450c-aa21-1b00e4ce3f95"})
+    @GET("labour-force-statistics")
+    Call<StatisticsObject> receiveStatsOverPeriod(@Query("region") String region, @Query("sex") String sex,
+                                                  @Query("data_item") String data_item, @Query("age") String age,
+                                                  @Query("adjustment_type") String adjustment_type,
+                                                  @Query("start_period") String start_period,
+                                                  @Query("end_period") String end_period);
 }

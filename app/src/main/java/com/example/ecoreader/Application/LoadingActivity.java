@@ -24,6 +24,7 @@ import android.widget.TextView;
 import com.beardedhen.androidbootstrap.BootstrapProgressBar;
 import com.example.ecoreader.R;
 
+// TODO: 14/08/2021 backstack issues 
 public class LoadingActivity extends AppCompatActivity{
     private static final String TAG = "LoadingActivity";
     public static final int COMPLETE_DATA = 1001;
@@ -74,6 +75,9 @@ public class LoadingActivity extends AppCompatActivity{
         if (firstTime) {
             PendingIntent pendingResult = createPendingResult(100, new Intent(), 0);
             mServiceIntent.putExtra("pendingIntent", pendingResult);
+            mServiceIntent.putExtra(FIRST_TIME, true);
+        } else {
+            mServiceIntent.putExtra(FIRST_TIME, false);
         }
         GetDataService mService = new GetDataService();
         if (!isMyServiceRunning(mService.getClass())) {
@@ -98,7 +102,7 @@ public class LoadingActivity extends AppCompatActivity{
 
     private void navigateToMainActivity() {
         txtFetch.setText("Finished Loading!");
-        progressBar.setProgress(4);
+        progressBar.setProgress(8);
         imageView.setAnimation(null);
         imageView.setVisibility(View.GONE);
         new Thread() {
@@ -126,7 +130,7 @@ public class LoadingActivity extends AppCompatActivity{
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         if (requestCode == 100 && resultCode == COMPLETE_DATA) {
             incrementProgress();
-            if (progressBar.getProgress() == 3) {
+            if (progressBar.getProgress() == 8) {
                 navigateToMainActivity();
             }
         }
@@ -135,7 +139,7 @@ public class LoadingActivity extends AppCompatActivity{
 
     private void incrementProgress() {
         int amount = progressBar.getProgress();
-        if (amount != 3) {
+        if (amount != 8) {
             progressBar.setProgress(amount+1);
         }
     }

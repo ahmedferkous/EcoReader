@@ -146,11 +146,14 @@ public class RateFragment extends Fragment{
     private String convertCurrency(String currencyCode, double numberToConvert, boolean multiply) {
         DecimalFormat format = new DecimalFormat("#0.000");
         Float conversionRate = rates.get(currencyCode);
-        if (multiply) {
-            return format.format( numberToConvert*conversionRate);
-        } else {
-            return format.format( numberToConvert/conversionRate);
+        if (conversionRate != null) {
+            if (multiply) {
+                return format.format( numberToConvert*conversionRate);
+            } else {
+                return format.format( numberToConvert/conversionRate);
+            }
         }
+        return "0";
     }
 
     private String getCurrencyCode(String country) {

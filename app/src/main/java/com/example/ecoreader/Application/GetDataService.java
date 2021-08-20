@@ -15,7 +15,9 @@ import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 
+import com.example.ecoreader.DataRetrieval.GetLabourStatsData;
 import com.example.ecoreader.DataRetrieval.GetRatesData;
+import com.example.ecoreader.DataRetrieval.Interfaces.FinishedLabourRequest;
 import com.example.ecoreader.DataRetrieval.Interfaces.FinishedNewsRequest;
 import com.example.ecoreader.DataRetrieval.GetNewsData;
 import com.example.ecoreader.Adapters.NewsObject;
@@ -33,8 +35,98 @@ import java.util.Calendar;
 import java.util.HashMap;
 
 import static com.example.ecoreader.Application.App.CHANNEL_ID_1;
+import static com.example.ecoreader.DataRetrieval.GetLabourStatsData.CIVILIAN_POPULATION;
+import static com.example.ecoreader.DataRetrieval.GetLabourStatsData.EMPLOYED_FULL_TIME;
+import static com.example.ecoreader.DataRetrieval.GetLabourStatsData.EMPLOYMENT_TO_POPULATION_RATIO;
+import static com.example.ecoreader.DataRetrieval.GetLabourStatsData.UNEMPLOYED_LOOKING_FOR_FULL_TIME_WORK;
+import static com.example.ecoreader.DataRetrieval.GetLabourStatsData.UNEMPLOYED_PERSONS;
 
-public class GetDataService extends Service implements FinishedNewsRequest, FinishedRatesRequest {
+// TODO: 20/08/2021 Perform final checks with retrieving data (for example, after first time launch ensure no more unnecessary fetching of data
+public class GetDataService extends Service implements FinishedNewsRequest, FinishedRatesRequest, FinishedLabourRequest {
+    @Override
+    public void onReceivedPopulation(int population) {
+        SharedPreferences.Editor editor = getEditor(this);
+        editor.putInt(CIVILIAN_POPULATION, population);
+        editor.apply();
+        sendPendingIntent();
+        new Thread() {
+            @Override
+            public void run() {
+                try {
+                    Thread.sleep(2000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                downloadRatio.execute(EMPLOYMENT_TO_POPULATION_RATIO);
+            }
+        }.start();
+    }
+
+    @Override
+    public void onReceivedEmploymentToPopulationRatio(float ratio) {
+        SharedPreferences.Editor editor = getEditor(this);
+        editor.putFloat(GetLabourStatsData.EMPLOYMENT_TO_POPULATION_RATIO, ratio/100);
+        editor.apply();
+        sendPendingIntent();
+        new Thread() {
+            @Override
+            public void run() {
+                try {
+                    Thread.sleep(2000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                downloadUnemployed.execute(UNEMPLOYED_PERSONS);
+            }
+        }.start();
+    }
+
+    @Override
+    public void onReceivedUnemployedPersons(int persons) {
+        SharedPreferences.Editor editor = getEditor(this);
+        editor.putInt(GetLabourStatsData.UNEMPLOYED_PERSONS, persons);
+        editor.apply();
+        sendPendingIntent();
+        new Thread() {
+            @Override
+            public void run() {
+                try {
+                    Thread.sleep(2000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                downloadEmployed.execute(EMPLOYED_FULL_TIME);
+            }
+        }.start();
+    }
+
+    @Override
+    public void onReceivedEmployedFullTime(int persons) {
+        SharedPreferences.Editor editor = getEditor(this);
+        editor.putInt(GetLabourStatsData.EMPLOYED_FULL_TIME, persons);
+        editor.apply();
+        sendPendingIntent();
+        new Thread() {
+            @Override
+            public void run() {
+                try {
+                    Thread.sleep(2000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                downloadUnemployedFullTimeWork.execute(UNEMPLOYED_LOOKING_FOR_FULL_TIME_WORK);
+            }
+        }.start();
+    }
+
+    @Override
+    public void onReceivedUnemployedLookingForFullTimeWork(int persons) {
+        SharedPreferences.Editor editor = getEditor(this);
+        editor.putInt(GetLabourStatsData.UNEMPLOYED_LOOKING_FOR_FULL_TIME_WORK, persons);
+        editor.apply();
+        sendPendingIntent();
+    }
+
     @Override
     public void onRetrievedNews(ArrayList<NewsObject> arrayList) { //Only here
         writeNews(arrayList);
@@ -75,8 +167,8 @@ public class GetDataService extends Service implements FinishedNewsRequest, Fini
 
     private PendingIntent data;
     private GetNewsData downloadNewsTask;
-    private GetRatesData downloadCurrenciesTask;
-    private GetRatesData downloadRatesTask;
+    private GetRatesData downloadCurrenciesTask, downloadRatesTask;
+    private GetLabourStatsData downloadPopulation, downloadRatio, downloadUnemployed, downloadEmployed, downloadUnemployedFullTimeWork;
     private Gson gson = new Gson();
     private final Handler handler = new Handler();
     private final Runnable newsPeriodicUpdate = new Runnable() {
@@ -98,6 +190,19 @@ public class GetDataService extends Service implements FinishedNewsRequest, Fini
             downloadRatesTask.execute(AUD_CODE);
         }
     };
+    private final Runnable labourStatsPeriodicUpdate = new Runnable() {
+        @Override
+        public void run() {
+            handler.postDelayed(labourStatsPeriodicUpdate, 86000000); //placeholder
+            downloadPopulation = new GetLabourStatsData(GetDataService.this);
+            downloadRatio = new GetLabourStatsData(GetDataService.this);
+            downloadUnemployed = new GetLabourStatsData(GetDataService.this);
+            downloadEmployed = new GetLabourStatsData(GetDataService.this);
+            downloadUnemployedFullTimeWork = new GetLabourStatsData(GetDataService.this);
+
+            downloadPopulation.execute(CIVILIAN_POPULATION);
+        }
+    };
 
     @Override
     public void onCreate() {
@@ -113,9 +218,14 @@ public class GetDataService extends Service implements FinishedNewsRequest, Fini
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        data = intent.getParcelableExtra("pendingIntent");
+        if (intent != null) {
+            data = intent.getParcelableExtra("pendingIntent");
+        }
+
         handler.postDelayed(newsPeriodicUpdate, 1000);
         handler.postDelayed(ratesPeriodicUpdate, 1000);
+        handler.postDelayed(labourStatsPeriodicUpdate, 1000);
+
         return START_STICKY;
     }
 
