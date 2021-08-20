@@ -17,6 +17,7 @@ import com.example.ecoreader.Fragments.RateFragment;
 import com.example.ecoreader.R;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
+// TODO: 20/08/2021 Force darkmode 
 public class MainActivity extends AppCompatActivity {
     private BottomNavigationView navigationView;
     @Override
