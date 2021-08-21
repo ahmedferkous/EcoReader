@@ -17,7 +17,8 @@ import com.example.ecoreader.Fragments.RateFragment;
 import com.example.ecoreader.R;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
-// TODO: 20/08/2021 Force darkmode 
+// TODO: 20/08/2021 Force darkmode
+// TODO: 21/08/2021 config changes with darkmode off and on?
 public class MainActivity extends AppCompatActivity {
     private BottomNavigationView navigationView;
     @Override

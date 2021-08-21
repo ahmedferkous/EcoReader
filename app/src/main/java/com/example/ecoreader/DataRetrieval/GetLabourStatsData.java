@@ -1,66 +1,51 @@
 package com.example.ecoreader.DataRetrieval;
 
-/*
-
-CIVILIAN_POPULATION
-
-EMPLOYMENT_TO_POPULATION_RATIO
-
-UNEMPLOYED_PERSONS
-
-EMPLOYED_FULL_TIME
-
-UNEMPLOYED_LOOKING_FOR_FULL_TIME_WORK
-
-LABOUR_FORCE_FULL_TIME
-
-
-EMPLOYED_PERSONS = CIVILIAN_POPULATION * EMPLOYMENT_TO_POPULATION_RATIO
-
-EMPLOYMENT_TO_POPULATION_RATIO = EMPLOYED_PERSONS / CIVILIAN_POPULATION
-
-LABOUR_FORCE = UNEMPLOYED_PERSONS + EMPLOYED_PERSONS
-
-NOT_IN_THE_LABOUR_FORCE = CIVILIAN_POPULATION - LABOUR_FORCE
-
-UNEMPLOYMENT_RATE = UNEMPLOYED_PERSONS / LABOUR_FORCE
-
-PARTICIPATION_RATE = LABOUR_FORCE / CIVILIAN_POPULATION
-
-EMPLOYED_PART_TIME = EMPLOYED_PERSONS - EMPLOYED_FULL_TIME
-
-UNEMPLOYED_LOOKING_FOR_PART_TIME_WORK = UNEMPLOYED_PERSONS - UNEMPLOYED_LOOKING_FOR_FULL_TIME_WORK
-
-LABOUR_FORCE_PART_TIME = LABOUR_FORCE - LABOUR_FORCE_FULL_TIME
-
-UNEMPLOYMENT_RATE_LOOKING_FOR_PART_TIME_WORK = UNEMPLOYED_LOOKING_FOR_PART_TIME_WORK / LABOUR_FORCE_PART_TIME
-
-UNEMPLOYMENT_RATE_LOOKING_FOR_FULL_TIME_WORK = UNEMPLOYED_LOOKING_FOR_FULL_TIME_WORK / LABOUR_FORCE_FULL_TIME
-
- */
-
 import android.os.AsyncTask;
 
+import com.example.ecoreader.Adapters.LabourCallbackAdapter;
 import com.example.ecoreader.Application.GetDataService;
 import com.example.ecoreader.DataRetrieval.Interfaces.FinishedLabourRequest;
-import com.example.ecoreader.DataRetrieval.Interfaces.FinishedRatesRequest;
 import com.example.ecoreader.DataRetrieval.Interfaces.LabourStatisticsEndpoint;
-import com.example.ecoreader.DataRetrieval.Interfaces.RateEndpoint;
+import com.example.ecoreader.DataRetrieval.Interfaces.onCompletedRetrieval;
 import com.example.ecoreader.DataRetrieval.PlainOldJavaObjects.StatisticsObject;
-import com.example.ecoreader.Fragments.ChartFragment;
-import com.example.ecoreader.Fragments.LabourFragment;
-
-import java.util.ArrayList;
 
 import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
-public class GetLabourStatsData extends AsyncTask<String, Void, Void> {
+public class GetLabourStatsData extends AsyncTask<String, Void, Void> implements onCompletedRetrieval {
+    @Override
+    public void onCompletedResultType(String type) {
+        new Thread() {
+            @Override
+            public void run() {
+                try {
+                    Thread.sleep(5000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                switch (type) {
+                    case CIVILIAN_POPULATION:
+                        employmentRatioCall.enqueue(new LabourCallbackAdapter(EMPLOYMENT_TO_POPULATION_RATIO, serviceCallback, GetLabourStatsData.this));
+                        break;
+                    case EMPLOYMENT_TO_POPULATION_RATIO:
+                        unemployedCall.enqueue(new LabourCallbackAdapter(UNEMPLOYED_PERSONS, serviceCallback, GetLabourStatsData.this));
+                        break;
+                    case UNEMPLOYED_PERSONS:
+                        employedCall.enqueue(new LabourCallbackAdapter(EMPLOYED_FULL_TIME, serviceCallback, GetLabourStatsData.this));
+                        break;
+                    case EMPLOYED_FULL_TIME:
+                        unemployedFullTimeCall.enqueue(new LabourCallbackAdapter(UNEMPLOYED_LOOKING_FOR_FULL_TIME_WORK, serviceCallback, GetLabourStatsData.this));
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }.start();
+    }
+
     public static final String BASE_URL = "https://wovg-community.gateway.prod.api.vic.gov.au/abs/v1.0/";
     public static final String CIVILIAN_POPULATION = "CIVILIAN_POPULATION";
     public static final String EMPLOYMENT_TO_POPULATION_RATIO = "EMPLOYMENT_TO_POPULATION_RATIO";
@@ -72,11 +57,15 @@ public class GetLabourStatsData extends AsyncTask<String, Void, Void> {
     public static final String AGE = "15_AND_OVER";
     public static final String ADJUSTMENT_TYPE = "ORIGINAL";
 
-    private FinishedLabourRequest onComplete;
+    private final FinishedLabourRequest serviceCallback;
     private LabourStatisticsEndpoint endpoint;
+    private Call<StatisticsObject> employmentRatioCall;
+    private Call<StatisticsObject> unemployedCall;
+    private Call<StatisticsObject> unemployedFullTimeCall;
+    private Call<StatisticsObject> employedCall;
 
     public GetLabourStatsData(GetDataService service) {
-        onComplete = service;
+        serviceCallback = service;
         initEndpoint();
     }
 
@@ -99,40 +88,13 @@ public class GetLabourStatsData extends AsyncTask<String, Void, Void> {
 
     @Override
     protected Void doInBackground(String... strings) {
-        Call<StatisticsObject> call = endpoint.receiveStats(REGION, SEX, strings[0], AGE, ADJUSTMENT_TYPE);
-        call.enqueue(new Callback<StatisticsObject>() {
-            @Override
-            public void onResponse(Call<StatisticsObject> call, Response<StatisticsObject> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    ArrayList<StatisticsObject.Values> values = response.body().getLabourStatistics();
-                    float value = values.get(values.size()-1).getObservationValue();
-                    switch (strings[0]) {
-                        case CIVILIAN_POPULATION:
-                            onComplete.onReceivedPopulation((int) (value*1000));
-                            break;
-                        case EMPLOYMENT_TO_POPULATION_RATIO:
-                            onComplete.onReceivedEmploymentToPopulationRatio(value);
-                            break;
-                        case UNEMPLOYED_PERSONS:
-                            onComplete.onReceivedUnemployedPersons((int) (value*1000));
-                            break;
-                        case EMPLOYED_FULL_TIME:
-                            onComplete.onReceivedEmployedFullTime((int) (value*1000));
-                            break;
-                        case UNEMPLOYED_LOOKING_FOR_FULL_TIME_WORK:
-                            onComplete.onReceivedUnemployedLookingForFullTimeWork((int)(value*1000));
-                            break;
-                        default:
-                            break;
-                    }
-                }
-            }
+        Call<StatisticsObject> populationCall = endpoint.receiveStats(REGION, SEX, CIVILIAN_POPULATION, AGE, ADJUSTMENT_TYPE);
+        employmentRatioCall = endpoint.receiveStats(REGION, SEX, EMPLOYMENT_TO_POPULATION_RATIO, AGE, ADJUSTMENT_TYPE);
+        unemployedCall = endpoint.receiveStats(REGION, SEX, UNEMPLOYED_PERSONS, AGE, ADJUSTMENT_TYPE);
+        employedCall = endpoint.receiveStats(REGION, SEX, EMPLOYED_FULL_TIME, AGE, ADJUSTMENT_TYPE);
+        unemployedFullTimeCall = endpoint.receiveStats(REGION, SEX, UNEMPLOYED_LOOKING_FOR_FULL_TIME_WORK, AGE, ADJUSTMENT_TYPE);
 
-            @Override
-            public void onFailure(Call<StatisticsObject> call, Throwable t) {
-
-            }
-        });
+        populationCall.enqueue(new LabourCallbackAdapter(CIVILIAN_POPULATION, serviceCallback, this));
         return null;
     }
 }

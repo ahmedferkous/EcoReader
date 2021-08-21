@@ -3,16 +3,19 @@ package com.example.ecoreader.DataRetrieval;
 import android.os.AsyncTask;
 import android.util.Log;
 
+import com.example.ecoreader.Adapters.LabourCallbackAdapter;
 import com.example.ecoreader.Application.GetDataService;
 import com.example.ecoreader.DataRetrieval.Interfaces.FinishedNewsRequest;
 import com.example.ecoreader.DataRetrieval.Interfaces.FinishedRatesRequest;
 import com.example.ecoreader.DataRetrieval.Interfaces.RateEndpoint;
 import com.example.ecoreader.DataRetrieval.PlainOldJavaObjects.LatestRatesObject;
+import com.example.ecoreader.DataRetrieval.PlainOldJavaObjects.StatisticsObject;
 import com.example.ecoreader.DataRetrieval.PlainOldJavaObjects.TimeSeriesObject;
 import com.example.ecoreader.Fragments.ChartFragment;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.sql.Time;
 import java.util.HashMap;
 
 import okhttp3.OkHttpClient;
@@ -75,7 +78,8 @@ public class GetRatesData extends AsyncTask<String, Void, Void> {
 
                     @Override
                     public void onFailure(@NotNull Call<TimeSeriesObject> call, @NotNull Throwable t) {
-                        t.printStackTrace();
+                        Call<TimeSeriesObject> retryCall = call.clone();
+                        retryCall.enqueue(this);
                     }
                 });
                 break;
@@ -95,7 +99,8 @@ public class GetRatesData extends AsyncTask<String, Void, Void> {
 
                     @Override
                     public void onFailure(@NotNull Call<LatestRatesObject> call, @NotNull Throwable t) {
-                        t.printStackTrace();
+                        Call<LatestRatesObject> retryCall = call.clone();
+                        retryCall.enqueue(this);
                     }
                 });
                 break;
@@ -115,7 +120,8 @@ public class GetRatesData extends AsyncTask<String, Void, Void> {
 
                     @Override
                     public void onFailure(@NotNull Call<HashMap<String, String>> call, @NotNull Throwable t) {
-                        t.printStackTrace();
+                        Call<HashMap<String, String>> retryCall = call.clone();
+                        retryCall.enqueue(this);
                     }
                 });
                 break;

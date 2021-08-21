@@ -24,7 +24,6 @@ import android.widget.TextView;
 import com.beardedhen.androidbootstrap.BootstrapProgressBar;
 import com.example.ecoreader.R;
 
-// TODO: 14/08/2021 backstack issues 
 public class LoadingActivity extends AppCompatActivity{
     private static final String TAG = "LoadingActivity";
     public static final int COMPLETE_DATA = 1001;
@@ -104,26 +103,13 @@ public class LoadingActivity extends AppCompatActivity{
         txtFetch.setText("Finished Loading!");
         progressBar.setProgress(8);
         imageView.setAnimation(null);
+        progressBar.setVisibility(View.GONE);
         imageView.setVisibility(View.GONE);
-        new Thread() {
-            @Override
-            public void run() {
-                try {
-                    Thread.sleep(2000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        Intent mainIntent = new Intent(LoadingActivity.this, MainActivity.class);
-                        mainIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-                        overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
-                        startActivity(mainIntent);
-                    }
-                });
-            }
-        }.start();
+        Intent mainIntent = new Intent(LoadingActivity.this, MainActivity.class);
+        overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
+        mainIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(mainIntent);
+        this.finish();
     }
 
     @Override

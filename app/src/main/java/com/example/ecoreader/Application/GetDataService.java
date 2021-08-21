@@ -41,7 +41,6 @@ import static com.example.ecoreader.DataRetrieval.GetLabourStatsData.EMPLOYMENT_
 import static com.example.ecoreader.DataRetrieval.GetLabourStatsData.UNEMPLOYED_LOOKING_FOR_FULL_TIME_WORK;
 import static com.example.ecoreader.DataRetrieval.GetLabourStatsData.UNEMPLOYED_PERSONS;
 
-// TODO: 20/08/2021 Perform final checks with retrieving data (for example, after first time launch ensure no more unnecessary fetching of data
 public class GetDataService extends Service implements FinishedNewsRequest, FinishedRatesRequest, FinishedLabourRequest {
     @Override
     public void onReceivedPopulation(int population) {
@@ -49,17 +48,6 @@ public class GetDataService extends Service implements FinishedNewsRequest, Fini
         editor.putInt(CIVILIAN_POPULATION, population);
         editor.apply();
         sendPendingIntent();
-        new Thread() {
-            @Override
-            public void run() {
-                try {
-                    Thread.sleep(2000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                downloadRatio.execute(EMPLOYMENT_TO_POPULATION_RATIO);
-            }
-        }.start();
     }
 
     @Override
@@ -68,17 +56,6 @@ public class GetDataService extends Service implements FinishedNewsRequest, Fini
         editor.putFloat(GetLabourStatsData.EMPLOYMENT_TO_POPULATION_RATIO, ratio/100);
         editor.apply();
         sendPendingIntent();
-        new Thread() {
-            @Override
-            public void run() {
-                try {
-                    Thread.sleep(2000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                downloadUnemployed.execute(UNEMPLOYED_PERSONS);
-            }
-        }.start();
     }
 
     @Override
@@ -87,17 +64,6 @@ public class GetDataService extends Service implements FinishedNewsRequest, Fini
         editor.putInt(GetLabourStatsData.UNEMPLOYED_PERSONS, persons);
         editor.apply();
         sendPendingIntent();
-        new Thread() {
-            @Override
-            public void run() {
-                try {
-                    Thread.sleep(2000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                downloadEmployed.execute(EMPLOYED_FULL_TIME);
-            }
-        }.start();
     }
 
     @Override
@@ -106,17 +72,6 @@ public class GetDataService extends Service implements FinishedNewsRequest, Fini
         editor.putInt(GetLabourStatsData.EMPLOYED_FULL_TIME, persons);
         editor.apply();
         sendPendingIntent();
-        new Thread() {
-            @Override
-            public void run() {
-                try {
-                    Thread.sleep(2000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                downloadUnemployedFullTimeWork.execute(UNEMPLOYED_LOOKING_FOR_FULL_TIME_WORK);
-            }
-        }.start();
     }
 
     @Override
@@ -168,8 +123,8 @@ public class GetDataService extends Service implements FinishedNewsRequest, Fini
     private PendingIntent data;
     private GetNewsData downloadNewsTask;
     private GetRatesData downloadCurrenciesTask, downloadRatesTask;
-    private GetLabourStatsData downloadPopulation, downloadRatio, downloadUnemployed, downloadEmployed, downloadUnemployedFullTimeWork;
-    private Gson gson = new Gson();
+    private GetLabourStatsData downloadLabourStatistics;
+    private final Gson gson = new Gson();
     private final Handler handler = new Handler();
     private final Runnable newsPeriodicUpdate = new Runnable() {
         @Override
@@ -194,13 +149,8 @@ public class GetDataService extends Service implements FinishedNewsRequest, Fini
         @Override
         public void run() {
             handler.postDelayed(labourStatsPeriodicUpdate, 86000000); //placeholder
-            downloadPopulation = new GetLabourStatsData(GetDataService.this);
-            downloadRatio = new GetLabourStatsData(GetDataService.this);
-            downloadUnemployed = new GetLabourStatsData(GetDataService.this);
-            downloadEmployed = new GetLabourStatsData(GetDataService.this);
-            downloadUnemployedFullTimeWork = new GetLabourStatsData(GetDataService.this);
-
-            downloadPopulation.execute(CIVILIAN_POPULATION);
+            downloadLabourStatistics = new GetLabourStatsData(GetDataService.this);
+            downloadLabourStatistics.execute();
         }
     };
 
@@ -245,6 +195,11 @@ public class GetDataService extends Service implements FinishedNewsRequest, Fini
         if (downloadRatesTask != null) {
             if (!downloadRatesTask.isCancelled()) {
                 downloadRatesTask.cancel(true);
+            }
+        }
+        if (downloadLabourStatistics != null) {
+            if (!downloadLabourStatistics.isCancelled()) {
+                downloadLabourStatistics.cancel(true);
             }
         }
         Intent broadcastIntent = new Intent();

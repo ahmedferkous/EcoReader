@@ -23,6 +23,7 @@ import com.example.ecoreader.DataRetrieval.Interfaces.FinishedRatesRequest;
 import com.example.ecoreader.DataRetrieval.PlainOldJavaObjects.LatestRatesObject;
 import com.example.ecoreader.DataRetrieval.PlainOldJavaObjects.TimeSeriesObject;
 import com.example.ecoreader.R;
+import com.google.android.material.internal.TextWatcherAdapter;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
@@ -39,7 +40,6 @@ import static com.example.ecoreader.Application.GetDataService.SAVED_AVAILABLE_C
 import static com.example.ecoreader.Application.GetDataService.SAVED_RATES;
 import static com.example.ecoreader.Application.GetDataService.USD_CODE;
 
-// TODO: 13/08/2021 Save data for fragment transactions 
 public class RateFragment extends Fragment{
     private static final String TAG = "RateFragment";
 
@@ -49,6 +49,54 @@ public class RateFragment extends Fragment{
     private TextView txtEquals;
     private EditText edtTxtAmount, edtTxtConvert;
     private ChartFragment childFragment;
+    private final TextWatcher amountListener = new TextWatcher() {
+        @Override
+        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            //edtTxtConvert.removeCallbacks(null);
+        }
+
+        @Override
+        public void onTextChanged(CharSequence s, int start, int before, int count) {
+            String amount = s + "";
+            if (amount.length() > 0 && !((amount.charAt(0)+"").equals("."))) {
+                double amountToConvert = Double.parseDouble(amount);
+                if (amountToConvert > 0.0) {
+                    edtTxtConvert.setText(convertCurrency(getCurrencyCode((String) spinner.getSelectedItem()), amountToConvert, true));
+                }
+            } else {
+                edtTxtConvert.setText("");
+            }
+        }
+
+        @Override
+        public void afterTextChanged(Editable s) {
+            //edtTxtConvert.addTextChangedListener(convertListener);
+        }
+    };
+    private final TextWatcher convertListener = new TextWatcher() {
+        @Override
+        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            //edtTxtAmount.removeCallbacks(null);
+        }
+
+        @Override
+        public void onTextChanged(CharSequence s, int start, int before, int count) {
+            String amount = s + "";
+            if (amount.length() > 0) {
+                double amountToConvert = Double.parseDouble(amount);
+                if (amountToConvert > 0.0) {
+                    edtTxtAmount.setText(convertCurrency(getCurrencyCode((String) spinner.getSelectedItem()), amountToConvert, false));
+                }
+            } else {
+                edtTxtAmount.setText("");
+            }
+        }
+
+        @Override
+        public void afterTextChanged(Editable s) {
+            //edtTxtAmount.addTextChangedListener(amountListener);
+        }
+    };
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -76,58 +124,8 @@ public class RateFragment extends Fragment{
             }
         });
 
-        edtTxtConvert.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
-            }
-
-            @Override // TODO: 13/08/2021 recursive call fix "ping pong"
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                /*
-                String amount = s + "";
-                if (amount.length() > 0) {
-                    double amountToConvert = Double.parseDouble(amount);
-                    if (amountToConvert > 0.0) {
-                        edtTxtAmount.setText(convertCurrency(getCurrencyCode((String) spinner.getSelectedItem()), amountToConvert, false));
-                    }
-                } else {
-                    edtTxtAmount.setText("");
-                }
-
-                 */
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {
-
-            }
-        });
-
-        edtTxtAmount.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
-            }
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                String amount = s + "";
-                if (amount.length() > 0 && !((amount.charAt(0)+"").equals("."))) {
-                    double amountToConvert = Double.parseDouble(amount);
-                    if (amountToConvert > 0.0) {
-                        edtTxtConvert.setText(convertCurrency(getCurrencyCode((String) spinner.getSelectedItem()), amountToConvert, true));
-                    }
-                } else {
-                    edtTxtConvert.setText("");
-                }
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {
-
-            }
-        });
+        edtTxtAmount.addTextChangedListener(amountListener);
+        //edtTxtConvert.addTextChangedListener(convertListener);
 
         loadRates();
         loadCurrencies();

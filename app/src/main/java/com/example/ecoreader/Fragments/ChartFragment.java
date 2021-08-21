@@ -1,5 +1,6 @@
 package com.example.ecoreader.Fragments;
 
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -55,7 +56,6 @@ import static com.example.ecoreader.Application.GetDataService.USD_CODE;
 
 public class ChartFragment extends Fragment implements FinishedRatesRequest, DateDialogFragment.onDateChosen {
     private static final String TAG = "ChartFragment";
-    private GetRatesData ratesTask;
     @Override
     public void dateResult(String date) {
         chosenDate = date;
@@ -87,6 +87,8 @@ public class ChartFragment extends Fragment implements FinishedRatesRequest, Dat
     private String chosenDate = DateDialogFragment.getDate(Calendar.YEAR, -1);
     private LineChart mChart;
     private TextView changeDate, txtNotiFetch;
+    private GetRatesData ratesTask;
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -105,6 +107,17 @@ public class ChartFragment extends Fragment implements FinishedRatesRequest, Dat
         });
         setupChart();
         return view;
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        Log.d(TAG, "onStop: ");
+        if (ratesTask != null) {
+            if (!ratesTask.isCancelled()) {
+                ratesTask.cancel(true);
+            }
+        }
     }
 
     private void setupChart() {
@@ -152,16 +165,6 @@ public class ChartFragment extends Fragment implements FinishedRatesRequest, Dat
         }
 
         initData(values, currencyCode);
-    }
-
-    @Override
-    public void onStop() {
-        super.onStop();
-        if (ratesTask != null) {
-            if (!ratesTask.isCancelled()) {
-                ratesTask.cancel(true);
-            }
-        }
     }
 
     private void initData(ArrayList<Entry> values, String currencyCode) {

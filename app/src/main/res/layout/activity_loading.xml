@@ -4,7 +4,6 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/ic_launcher_background"
     android:fitsSystemWindows="true"
     tools:context=".Application.LoadingActivity">
 
@@ -16,7 +15,6 @@
         android:layout_centerInParent="true"
         android:layout_marginBottom="20dp"
         android:text="Fetching Data"
-        android:textColor="@color/black"
         android:textSize="20sp"
         android:textStyle="bold" />
 
